@@ -1,0 +1,95 @@
+{
+  "num_cols": [
+    "sbytes",
+    "ct_srv_src",
+    "ct_dst_ltm",
+    "ct_src_dport_ltm",
+    "ct_dst_sport_ltm",
+    "ct_dst_src_ltm",
+    "ct_src_ltm",
+    "ct_srv_dst",
+    "is_sm_ips_ports"
+  ],
+  "cat_cols": [
+    "proto",
+    "service"
+  ],
+  "vocab": {
+    "proto": [
+      "__other__",
+      "tcp",
+      "udp",
+      "unas",
+      "arp",
+      "ospf",
+      "sctp",
+      "any",
+      "gre",
+      "ipv6",
+      "sun-nd",
+      "rsvp",
+      "pim",
+      "sep",
+      "mobile",
+      "swipe",
+      "prm",
+      "skip",
+      "sps",
+      "etherip",
+      "stp"
+    ],
+    "service": [
+      "__other__",
+      "-",
+      "dns",
+      "http",
+      "smtp",
+      "ftp",
+      "ftp-data",
+      "pop3",
+      "ssh",
+      "dhcp",
+      "snmp",
+      "ssl",
+      "radius",
+      "irc"
+    ]
+  },
+  "median": {
+    "sbytes": 6.282266746896006,
+    "ct_srv_src": 5.0,
+    "ct_dst_ltm": 2.0,
+    "ct_src_dport_ltm": 1.0,
+    "ct_dst_sport_ltm": 1.0,
+    "ct_dst_src_ltm": 3.0,
+    "ct_src_ltm": 3.0,
+    "ct_srv_dst": 5.0,
+    "is_sm_ips_ports": 0.0
+  },
+  "mean": {
+    "sbytes": 6.315132256246088,
+    "ct_srv_src": 9.567792198778456,
+    "ct_dst_ltm": 5.764158800666297,
+    "ct_src_dport_ltm": 4.953723625763465,
+    "ct_dst_sport_ltm": 3.6805767629094945,
+    "ct_dst_src_ltm": 7.478189200444198,
+    "ct_src_ltm": 6.493389089394781,
+    "ct_srv_dst": 9.190397695724597,
+    "is_sm_ips_ports": 0.011122293170460856
+  },
+  "std": {
+    "sbytes": 1.6156382675556178,
+    "ct_srv_src": 11.10539464159516,
+    "ct_dst_ltm": 8.436698451757294,
+    "ct_src_dport_ltm": 8.415045613422947,
+    "ct_dst_sport_ltm": 5.932025079699907,
+    "ct_dst_src_ltm": 11.428846460266529,
+    "ct_src_ltm": 8.564752822579804,
+    "ct_srv_dst": 11.136198564388692,
+    "is_sm_ips_ports": 0.10487506190741303
+  },
+  "log_features": [
+    "sbytes"
+  ],
+  "max_categories": 20
+}

@@ -1,0 +1,16 @@
+# Environnement virtuel (~810 Mo)
+.venv/
+venv/
+
+# Configuration locale — identifiants, ne jamais publier
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/

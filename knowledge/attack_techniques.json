@@ -1,0 +1,2960 @@
+[
+ {
+  "id": "T1005",
+  "name": "Data from Local System",
+  "tactics": [
+   "Collection"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may search local system sources, such as file systems, configuration files, local databases, virtual machine files, or process memory, to find files of interest and sensitive data prior to Exfiltration.\n\nAdversaries may do this using a [Command and Scripting Interpreter](https://attack.mitre.org/techniques/T1059), such as [cmd](https://attack.mitre.org/software/S0106) as well as a [Network Device CLI](https://attack.mitre.org/techniques/T1059/008), which have functionality to interact with the file system to gather information.(Citation: show_run_config_cmd_cisco) Adversaries may also use [Automated Collection](https://attack.mitre.org/techniques/T1119) on the local system.",
+  "mitigations": [
+   "Data Loss Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Local Data Collection Prior to Exfiltration",
+    "strategy_id": "DET0380",
+    "analytics": [
+     {
+      "name": "Analytic 1070",
+      "description": "Adversaries collecting local files via PowerShell, WMI, or direct file API calls often include recursive file listings, targeted file reads, and temporary file staging.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1071",
+      "description": "Adversaries using bash scripts or tools to recursively enumerate user home directories, config files, or SSH keys.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 1072",
+      "description": "Adversary use of bash/zsh or AppleScript to locate files and exfil targets like user keychains or documents.",
+      "logs": [
+       "macos:unifiedlog",
+       "fs:fsusage"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1005"
+ },
+ {
+  "id": "T1011",
+  "name": "Exfiltration Over Other Network Medium",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may attempt to exfiltrate data over a different network medium than the command and control channel. If the command and control network is a wired Internet connection, the exfiltration may occur, for example, over a WiFi connection, modem, cellular data connection, Bluetooth, or another radio frequency (RF) channel.\n\nAdversaries may choose to do this if they have sufficient access or proximity, and the connection might not be secured or defended as well as the primary Internet-connected channel because it is not routed through the same enterprise network.",
+  "mitigations": [
+   "Disable or Remove Feature or Program",
+   "Operating System Configuration"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Exfiltration Over Alternate Network Interfaces",
+    "strategy_id": "DET0077",
+    "analytics": [
+     {
+      "name": "Analytic 0212",
+      "description": "Execution of file transfer or network access activity through non-primary interfaces (e.g., WiFi, Bluetooth, cellular) by processes not typically associated with such behavior (e.g., rundll32, powershell, regsvr32).",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:System",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0213",
+      "description": "Use of `rfkill`, `nmcli`, or low-level tools (e.g., `iw`, `hcitool`, `pppd`) to enable alternate interfaces followed by data transfer via non-primary NICs.",
+      "logs": [
+       "auditd:SYSCALL",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 0214",
+      "description": "AppleScript or system calls to activate WiFi/Bluetooth interfaces (`networksetup`, `blueutil`), followed by exfiltration via AirDrop, cloud sync, or network socket.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery",
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1011"
+ },
+ {
+  "id": "T1016",
+  "name": "System Network Configuration Discovery",
+  "tactics": [
+   "Discovery"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may look for details about the network configuration and settings, such as IP and/or MAC addresses, of systems they access or through information discovery of remote systems. Several operating system administration utilities exist that can be used to gather this information. Examples include [Arp](https://attack.mitre.org/software/S0099), [ipconfig](https://attack.mitre.org/software/S0100)/[ifconfig](https://attack.mitre.org/software/S0101), [nbtstat](https://attack.mitre.org/software/S0102), and [route](https://attack.mitre.org/software/S0103).\n\nAdversaries may also leverage a [Network Device CLI](https://attack.mitre.org/techniques/T1059/008) on network devices to gather information about configurations and settings, such as IP addresses of configured interfaces and static/dynamic routes (e.g. <code>show ip route</code>, <code>show ip interface</code>).(Citation: US-CERT-TA18-106A)(Citation: Mandiant APT41 Global Intrusion ) On ESXi, adversaries may leverage esxcli to gather network configuration information. For example, the command `esxcli network nic list` will retrieve the MAC address, while `esxcli network ip interface ipv4 get` will retrieve the local IPv4 address.(Citation: Trellix Rnasomhouse 2024)\n\nAdversaries may use the information from [System Network Configuration Discovery](https://attack.mitre.org/techniques/T1016) during automated discovery to shap",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection of System Network Configuration Discovery",
+    "strategy_id": "DET0195",
+    "analytics": [
+     {
+      "name": "Analytic 0559",
+      "description": "Execution of built-in tools (e.g., ipconfig, route, netsh) or PowerShell/WMI queries to enumerate IP, MAC, interface status, or routing configuration.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:PowerShell"
+      ]
+     },
+     {
+      "name": "Analytic 0560",
+      "description": "Execution of `ifconfig`, `ip a`, or access to `/proc/net/` indicating collection of local interface and route configuration.",
+      "logs": [
+       "auditd:EXECVE"
+      ]
+     },
+     {
+      "name": "Analytic 0561",
+      "description": "Execution of `ifconfig`, `networksetup`, or `system_profiler` to query IP/MAC/interface configuration and status.",
+      "logs": [
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1016"
+ },
+ {
+  "id": "T1020",
+  "name": "Automated Exfiltration",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may exfiltrate data, such as sensitive documents, through the use of automated processing after being gathered during Collection.(Citation: ESET Gamaredon June 2020) \n\nWhen automated exfiltration is used, other exfiltration techniques likely apply as well to transfer the information out of the network, such as [Exfiltration Over C2 Channel](https://attack.mitre.org/techniques/T1041) and [Exfiltration Over Alternative Protocol](https://attack.mitre.org/techniques/T1048).",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Automated Exfiltration Detection Strategy",
+    "strategy_id": "DET0397",
+    "analytics": [
+     {
+      "name": "Analytic 1113",
+      "description": "Detection of automated tools or scripts periodically transmitting data to external destinations using scheduled tasks or background processes.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1114",
+      "description": "Background scripts (e.g., via cron) or daemons transmitting data repeatedly to remote IPs or URLs.",
+      "logs": [
+       "auditd:SYSCALL",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1115",
+      "description": "Observation of LaunchAgents or LaunchDaemons establishing periodic external connections indicative of automated data transfer.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog",
+       "macos:cron"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1020"
+ },
+ {
+  "id": "T1021",
+  "name": "Remote Services",
+  "tactics": [
+   "Lateral Movement"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into a service that accepts remote connections, such as telnet, SSH, and VNC. The adversary may then perform actions as the logged-on user.\n\nIn an enterprise environment, servers and workstations can be organized into domains. Domains provide centralized identity management, allowing users to log in using one set of credentials across the entire network. If an adversary is able to obtain a set of valid domain credentials, they could log in to many different machines using remote access protocols such as secure shell (SSH) or remote desktop protocol (RDP).(Citation: SSH Secure Shell)(Citation: TechNet Remote Desktop Services) They could also log in to accessible SaaS or IaaS services, such as those that federate their identities to the domain, or management platforms for internal virtualization environments such as VMware vCenter. \n\nLegitimate applications (such as [Software Deployment Tools](https://attack.mitre.org/techniques/T1072) and other administrative programs) may utilize [Remote Services](https://attack.mitre.org/techniques/T1021) to access remote hosts. For example, Apple Remote Desktop (ARD) on macOS is native software used for remote management. ARD leverages a blend of protocols, including [VNC](https://attack.mitre.org/techniques/T1021/005) to send the screen and control buffers",
+  "mitigations": [
+   "Audit",
+   "Disable or Remove Feature or Program",
+   "Limit Access to Resource Over Network",
+   "Multi-factor Authentication",
+   "Password Policies",
+   "User Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection Strategy for Remote Service Logins and Post-Access Activity",
+    "strategy_id": "DET0269",
+    "analytics": [
+     {
+      "name": "Analytic 0750",
+      "description": "Logon via RDP or WMI by a user account followed by uncommon command execution, file manipulation, or lateral network connections.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0751",
+      "description": "SSH session from new source IP followed by interactive shell or privilege escalation (e.g., sudo, su) and outbound lateral connection.",
+      "logs": [
+       "linux:syslog",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 0752",
+      "description": "Remote login via ARD or SSH followed by screensharingd process activity or modification of TCC-protected files.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1021"
+ },
+ {
+  "id": "T1021.004",
+  "name": "SSH",
+  "tactics": [
+   "Lateral Movement"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may use [Valid Accounts](https://attack.mitre.org/techniques/T1078) to log into remote machines using Secure Shell (SSH). The adversary may then perform actions as the logged-on user.\n\nSSH is a protocol that allows authorized users to open remote shells on other computers. Many Linux and macOS versions come with SSH installed by default, although typically disabled until the user enables it. On ESXi, SSH can be enabled either directly on the host (e.g., via `vim-cmd hostsvc/enable_ssh`) or via vCenter.(Citation: Sygnia ESXi Ransomware 2025)(Citation: TrendMicro ESXI Ransomware)(Citation: Sygnia Abyss Locker 2025) Modern versions of Windows include a built-in SSH server and client.(Citation: Windows SSH) The SSH server can be configured to use standard password authentication or public-private keypairs in lieu of or in addition to a password. In this authentication scenario, the user’s public key must be in a special file on the computer running the server that lists which keypairs are allowed to log in as that user (i.e., [SSH Authorized Keys](https://attack.mitre.org/techniques/T1098/004)).",
+  "mitigations": [
+   "Disable or Remove Feature or Program",
+   "Multi-factor Authentication",
+   "User Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection of Remote SSH Logins Followed by Post-Login Execution",
+    "strategy_id": "DET0596",
+    "analytics": [
+     {
+      "name": "Analytic 1638",
+      "description": "SSH login from a remote system (via sshd), followed by user context execution of suspicious binaries or privilege escalation behavior.",
+      "logs": [
+       "auditd:EXECVE",
+       "linux:syslog",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1639",
+      "description": "SSH login detected via Unified Logs, followed by unusual process execution, especially outside normal user behavior patterns.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog",
+       "macos:osquery"
+      ]
+     },
+     {
+      "name": "Analytic 1640",
+      "description": "SSH login via hostd or `/var/log/auth.log`, followed by CLI access to host shell or file manipulation in restricted areas.",
+      "logs": [
+       "esxi:auth",
+       "esxi:shell",
+       "esxi:vmkernel"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1021/004"
+ },
+ {
+  "id": "T1027",
+  "name": "Obfuscated Files or Information",
+  "tactics": [
+   "Stealth"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may attempt to make an executable or file difficult to discover or analyze by encrypting, encoding, or otherwise obfuscating its contents on the system or in transit. This is common behavior that can be used across different platforms and the network to evade defenses. \n\nPayloads may be compressed, archived, or encrypted in order to avoid detection. These payloads may be used during Initial Access or later to mitigate detection. Sometimes a user's action may be required to open and [Deobfuscate/Decode Files or Information](https://attack.mitre.org/techniques/T1140) for [User Execution](https://attack.mitre.org/techniques/T1204). The user may also be required to input a password to open a password protected compressed/encrypted file that was provided by the adversary.(Citation: Volexity PowerDuke November 2016) Adversaries may also use compressed or archived scripts, such as JavaScript. \n\nPortions of files can also be encoded to hide the plain-text strings that would otherwise help defenders with discovery.(Citation: Linux/Cdorked.A We Live Security Analysis) Payloads may also be split into separate, seemingly benign files that only reveal malicious functionality when reassembled.(Citation: Carbon Black Obfuscation Sept 2016)\n\nAdversaries may also abuse [Command Obfuscation](https://attack.mitre.org/techniques/T1027/010) to obscure commands executed from payloads or ",
+  "mitigations": [
+   "Antivirus/Antimalware",
+   "Audit",
+   "Behavior Prevention on Endpoint",
+   "User Training"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection of Obfuscated Files or Information",
+    "strategy_id": "DET0378",
+    "analytics": [
+     {
+      "name": "Analytic 1064",
+      "description": "Correlates script execution or suspicious parent processes with creation or modification of encoded, compressed, or encrypted file formats (e.g., .zip, .7z, .enc) and abnormal command-line syntax or PowerShell obfuscation.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1065",
+      "description": "Detects use of gzip, base64, tar, or openssl in scripts or commands that encode/encrypt files after file staging or system enumeration.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "linux:cli"
+      ]
+     },
+     {
+      "name": "Analytic 1066",
+      "description": "Monitors use of archive or encryption tools (zip, openssl) tied to user-scripted activity or binaries writing encoded payloads under /Users or /Volumes.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1027"
+ },
+ {
+  "id": "T1029",
+  "name": "Scheduled Transfer",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may schedule data exfiltration to be performed only at certain times of day or at certain intervals. This could be done to blend traffic patterns with normal activity or availability.(Citation: Delay Code Execution in Java)\n\nWhen scheduled exfiltration is used, other exfiltration techniques likely apply as well to transfer the information out of the network, such as [Exfiltration Over C2 Channel](https://attack.mitre.org/techniques/T1041) or [Exfiltration Over Alternative Protocol](https://attack.mitre.org/techniques/T1048).",
+  "mitigations": [
+   "Network Intrusion Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Scheduled Transfer and Recurrent Exfiltration Patterns",
+    "strategy_id": "DET0399",
+    "analytics": [
+     {
+      "name": "Analytic 1118",
+      "description": "Recurring network exfiltration initiated by scheduled or script-based processes exhibiting time-based regularity and consistent external destinations.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "WinEventLog:System"
+      ]
+     },
+     {
+      "name": "Analytic 1119",
+      "description": "Detection of cron-based or script-based recurring transfers where the same script, user, or destination reappears at predictable intervals.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:cron",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1120",
+      "description": "LaunchAgent or launchd recurring jobs initiating data transfer to consistent external IPs or domains with repeat timing signatures.",
+      "logs": [
+       "macos:endpointsecurity",
+       "macos:launchd",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1029"
+ },
+ {
+  "id": "T1030",
+  "name": "Data Transfer Size Limits",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": false,
+  "description": "An adversary may exfiltrate data in fixed size chunks instead of whole files or limit packet sizes below certain thresholds. This approach may be used to avoid triggering network data transfer threshold alerts.(Citation: Chunked Encoding)",
+  "mitigations": [
+   "Network Intrusion Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Data Transfer Size Limits and Chunked Exfiltration",
+    "strategy_id": "DET0213",
+    "analytics": [
+     {
+      "name": "Analytic 0596",
+      "description": "Adversary uses a process to establish outbound connections that transmit uniform packet sizes at a consistent interval, avoiding threshold-based network alerts.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 0597",
+      "description": "Outbound connections from non-network-facing processes repeatedly send similarly sized payloads within uniform time intervals.",
+      "logs": [
+       "auditd:SYSCALL",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 0598",
+      "description": "Processes on macOS initiate external connections that consistently transmit data in fixed sizes using LaunchAgents or unexpected users.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:endpointsecurity"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1030"
+ },
+ {
+  "id": "T1036",
+  "name": "Masquerading",
+  "tactics": [
+   "Stealth"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may attempt to manipulate features of their artifacts to make them appear legitimate or benign to users and/or security tools. Masquerading occurs when the name or location of an object, legitimate or malicious, is manipulated or abused for the sake of evading defenses and observation. This may include manipulating file metadata, tricking users into misidentifying the file type, and giving legitimate task or service names.\n\nRenaming abusable system utilities to evade security monitoring is also a form of [Masquerading](https://attack.mitre.org/techniques/T1036).(Citation: LOLBAS Main Site)",
+  "mitigations": [
+   "Antivirus/Antimalware",
+   "Audit",
+   "Behavior Prevention on Endpoint",
+   "Code Signing",
+   "Execution Prevention",
+   "Restrict File and Directory Permissions",
+   "User Account Management",
+   "User Training"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection of Masquerading Across Platforms via Metadata and Execution Discrepancy",
+    "strategy_id": "DET0127",
+    "analytics": [
+     {
+      "name": "Analytic 0355",
+      "description": "Adversary renames LOLBINs or deploys binaries with spoofed file names, internal PE metadata, or misleading icons to appear legitimate. File creation is followed by execution or service registration inconsistent with known usage.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:System"
+      ]
+     },
+     {
+      "name": "Analytic 0356",
+      "description": "Adversary drops renamed binaries in uncommon directories (e.g., /tmp, /dev/shm) or uses special characters in names (e.g., trailing space, Unicode RLO). Execution or cronjob registration follows shortly after file drop.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:syslog",
+       "linux:osquery"
+      ]
+     },
+     {
+      "name": "Analytic 0357",
+      "description": "Adversary creates disguised launch daemons or apps with misleading names and bundle metadata (e.g., Info.plist values inconsistent with binary path or icon). Launch is correlated with user logon or persistence setup.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:endpointsecurity",
+       "fs:fileevents"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1036"
+ },
+ {
+  "id": "T1036.005",
+  "name": "Match Legitimate Resource Name or Location",
+  "tactics": [
+   "Stealth"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may match or approximate the name or location of legitimate files, Registry keys, or other resources when naming/placing them. This is done for the sake of evading defenses and observation. \n\nThis may be done by placing an executable in a commonly trusted directory (ex: under System32) or giving it the name of a legitimate, trusted program (ex: `svchost.exe`). Alternatively, a Windows Registry key may be given a close approximation to a key used by a legitimate program. In containerized environments, a threat actor may create a resource in a trusted namespace or one that matches the naming convention of a container pod or cluster.(Citation: Aquasec Kubernetes Backdoor 2023)",
+  "mitigations": [
+   "Code Signing",
+   "Execution Prevention",
+   "Restrict File and Directory Permissions"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Masquerading via Legitimate Resource Name or Location",
+    "strategy_id": "DET0347",
+    "analytics": [
+     {
+      "name": "Analytic 0983",
+      "description": "Detects processes or binaries executed from trusted directories (e.g., System32) or using trusted names (e.g., svchost.exe) where the metadata, hash, or parent process does not align with legitimate activity patterns.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0984",
+      "description": "Detects renamed binaries or scripts placed into trusted paths like /usr/bin or /lib with mismatched metadata or unexpected creation/modification times.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "linux:osquery"
+      ]
+     },
+     {
+      "name": "Analytic 0985",
+      "description": "Detects binaries or launch daemons in /System/Library or /Applications with mismatched bundle names, unexpected metadata, or improper installation origin.",
+      "logs": [
+       "macos:unifiedlog",
+       "fs:fsusage"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1036/005"
+ },
+ {
+  "id": "T1041",
+  "name": "Exfiltration Over C2 Channel",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may steal data by exfiltrating it over an existing command and control channel. Stolen data is encoded into the normal communications channel using the same protocol as command and control communications.(Citation: C2 FRAMEWORKS)",
+  "mitigations": [
+   "Data Loss Prevention",
+   "Network Intrusion Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Exfiltration Over C2 Channel",
+    "strategy_id": "DET0348",
+    "analytics": [
+     {
+      "name": "Analytic 0988",
+      "description": "Identifies suspicious outbound traffic volume mismatches from processes that typically do not generate network activity, particularly over C2 protocols like HTTPS, DNS, or custom TCP/UDP ports, following file or data access.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "NSM:Flow",
+       "WinEventLog:Security"
+      ]
+     },
+     {
+      "name": "Analytic 0989",
+      "description": "Monitors for processes reading sensitive files then immediately initiating unusual outbound connections or bulk transfer sessions over persistent sockets, particularly with encrypted or binary payloads.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "NSM:Flow",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 0990",
+      "description": "Detects unauthorized applications or scripts accessing sensitive data followed by establishing encrypted outbound communication to rare external destinations or with abnormal byte ratios.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery",
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1041"
+ },
+ {
+  "id": "T1046",
+  "name": "Network Service Discovery",
+  "tactics": [
+   "Discovery"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may attempt to get a listing of services running on remote hosts and local network infrastructure devices, including those that may be vulnerable to remote software exploitation. Common methods to acquire this information include port, vulnerability, and/or wordlist scans using tools that are brought onto a system.(Citation: CISA AR21-126A FIVEHANDS May 2021)   \n\nWithin cloud environments, adversaries may attempt to discover services running on other cloud hosts. Additionally, if the cloud environment is connected to an on-premises environment, adversaries may be able to identify services running on non-cloud systems as well.\n\nWithin macOS environments, adversaries may use the native Bonjour application to discover services running on other macOS hosts within a network. The Bonjour mDNSResponder daemon automatically registers and advertises a host’s registered services on the network. For example, adversaries can use a mDNS query (such as <code>dns-sd -B _ssh._tcp .</code>) to find other systems broadcasting the ssh service.(Citation: apple doco bonjour description)(Citation: macOS APT Activity Bradley)",
+  "mitigations": [
+   "Disable or Remove Feature or Program",
+   "Network Intrusion Prevention",
+   "Network Segmentation"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection Strategy for Network Service Discovery Across Platforms",
+    "strategy_id": "DET0376",
+    "analytics": [
+     {
+      "name": "Analytic 1057",
+      "description": "Detects processes performing network enumeration (e.g., port scans, service probing) by correlating process creation, socket connections, and sequential destination IP probing within a time window.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1058",
+      "description": "Detects use of network scanning utilities or scripts performing rapid connections to multiple services or hosts using auditd and netflow/pcap telemetry.",
+      "logs": [
+       "auditd:SYSCALL",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1059",
+      "description": "Detects Bonjour-based mDNS enumeration or use of system tools (e.g., dns-sd, nmap) to find active services via multicast probing or targeted scans.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1046"
+ },
+ {
+  "id": "T1048",
+  "name": "Exfiltration Over Alternative Protocol",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may steal data by exfiltrating it over a different protocol than that of the existing command and control channel. The data may also be sent to an alternate network location from the main command and control server.  \n\nAlternate protocols include FTP, SMTP, HTTP/S, DNS, SMB, or any other network protocol not being used as the main command and control channel. Adversaries may also opt to encrypt and/or obfuscate these alternate channels. \n\n[Exfiltration Over Alternative Protocol](https://attack.mitre.org/techniques/T1048) can be done using various common operating system utilities such as [Net](https://attack.mitre.org/software/S0039)/SMB or FTP.(Citation: Palo Alto OilRig Oct 2016) On macOS and Linux <code>curl</code> may be used to invoke protocols such as HTTP/S or FTP/S to exfiltrate data from a system.(Citation: 20 macOS Common Tools and Techniques)\n\nMany IaaS and SaaS platforms (such as Microsoft Exchange, Microsoft SharePoint, GitHub, and AWS S3) support the direct download of files, emails, source code, and other sensitive information via the web console or [Cloud API](https://attack.mitre.org/techniques/T1059/009).",
+  "mitigations": [
+   "Data Loss Prevention",
+   "Filter Network Traffic",
+   "Network Intrusion Prevention",
+   "Network Segmentation",
+   "Restrict File and Directory Permissions",
+   "User Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection Strategy for Exfiltration Over Alternative Protocol",
+    "strategy_id": "DET0131",
+    "analytics": [
+     {
+      "name": "Analytic 0367",
+      "description": "Detects unusual outbound file transfer behavior using protocols like FTP, SMB, SMTP, or DNS, involving non-standard processes, off-hour activity, or uncommonly high volume.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security"
+      ]
+     },
+     {
+      "name": "Analytic 0368",
+      "description": "Detects file exfiltration using tools like curl, scp, or custom binaries over protocols such as FTP, HTTP/S, or DNS tunneling, especially outside baseline user behavior.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 0369",
+      "description": "Detects non-native file transfer via curl, Python scripts, or AppleScript using uncommon protocols like FTP, SMTP, or DNS exfiltration through mDNSResponder abuse.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery",
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1048"
+ },
+ {
+  "id": "T1048.001",
+  "name": "Exfiltration Over Symmetric Encrypted Non-C2 Protocol",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may steal data by exfiltrating it over a symmetrically encrypted network protocol other than that of the existing command and control channel. The data may also be sent to an alternate network location from the main command and control server. \n\nSymmetric encryption algorithms are those that use shared or the same keys/secrets on each end of the channel. This requires an exchange or pre-arranged agreement/possession of the value used to encrypt and decrypt data.(Citation: Exfiltration Over Symmetric Encrypted Non-C2 Protocol)\n\nNetwork protocols that use asymmetric encryption often utilize symmetric encryption once keys are exchanged, but adversaries may opt to manually share keys and implement symmetric cryptographic algorithms (ex: RC4, AES) vice using mechanisms that are baked into a protocol. This may result in multiple layers of encryption (in protocols that are natively encrypted such as HTTPS) or encryption in protocols that are not typically encrypted (such as HTTP or FTP).",
+  "mitigations": [
+   "Filter Network Traffic",
+   "Network Intrusion Prevention",
+   "Network Segmentation"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection Strategy for Exfiltration Over Symmetric Encrypted Non-C2 Protocol",
+    "strategy_id": "DET0503",
+    "analytics": [
+     {
+      "name": "Analytic 1389",
+      "description": "Detects the execution of non-browser processes establishing outbound encrypted network connections using uncommon symmetric encryption protocols (e.g., AES via PowerShell or custom scripts) to alternate external destinations.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1390",
+      "description": "Detects command-line utilities or scripts using encryption libraries or symmetric algorithms (e.g., OpenSSL AES, GPG, Python + PyCrypto) in conjunction with outbound file transfers or traffic to external destinations.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "NSM:Flow",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1391",
+      "description": "Detects symmetric key-based encryption operations (e.g., AES via Python, AppleScript, or OpenSSL) followed by unusual outbound connections from non-browser applications or scripted tools.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1048/001"
+ },
+ {
+  "id": "T1048.002",
+  "name": "Exfiltration Over Asymmetric Encrypted Non-C2 Protocol",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may steal data by exfiltrating it over an asymmetrically encrypted network protocol other than that of the existing command and control channel. The data may also be sent to an alternate network location from the main command and control server. \n\nAsymmetric encryption algorithms are those that use different keys on each end of the channel. Also known as public-key cryptography, this requires pairs of cryptographic keys that can encrypt/decrypt data from the corresponding key. Each end of the communication channels requires a private key (only in the procession of that entity) and the public key of the other entity. The public keys of each entity are exchanged before encrypted communications begin. \n\nNetwork protocols that use asymmetric encryption (such as HTTPS/TLS/SSL) often utilize symmetric encryption once keys are exchanged.(Citation: Cybersecurity Advisory GRU Brute Force Campaign July 2021) Adversaries may opt to use these encrypted mechanisms that are baked into a protocol.",
+  "mitigations": [
+   "Data Loss Prevention",
+   "Filter Network Traffic",
+   "Network Intrusion Prevention",
+   "Network Segmentation"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Exfiltration Over Asymmetric Encrypted Non-C2 Protocol",
+    "strategy_id": "DET0512",
+    "analytics": [
+     {
+      "name": "Analytic 1413",
+      "description": "Detects non-browser processes that establish encrypted outbound connections (e.g., TLS/SSL) to unfamiliar or atypical destinations for the host/user, following a data staging or compression event.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1414",
+      "description": "Detects staged file access (e.g., archive or obfuscation), followed by an encrypted outbound connection (TLS/HTTPS) from unusual processes such as curl/wget, Python scripts, or custom binaries.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "NSM:Flow",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 1415",
+      "description": "Detects abnormal encrypted network connections (via TLS/HTTPS) initiated by non-browser binaries, particularly after sensitive file access or compression events.",
+      "logs": [
+       "macos:osquery",
+       "macos:osquery",
+       "macos:unifiedlog",
+       "NSM:Flow"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1048/002"
+ },
+ {
+  "id": "T1048.003",
+  "name": "Exfiltration Over Unencrypted Non-C2 Protocol",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may steal data by exfiltrating it over an un-encrypted network protocol other than that of the existing command and control channel. The data may also be sent to an alternate network location from the main command and control server.(Citation: copy_cmd_cisco)\n\nAdversaries may opt to obfuscate this data, without the use of encryption, within network protocols that are natively unencrypted (such as HTTP, FTP, or DNS). This may include custom or publicly available encoding/compression algorithms (such as base64) as well as embedding data within protocol headers and fields.",
+  "mitigations": [
+   "Data Loss Prevention",
+   "Filter Network Traffic",
+   "Network Intrusion Prevention",
+   "Network Segmentation"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Exfiltration Over Unencrypted Non-C2 Protocol",
+    "strategy_id": "DET0149",
+    "analytics": [
+     {
+      "name": "Analytic 0423",
+      "description": "Detects data access or staging events followed by outbound data flows using unencrypted protocols (e.g., FTP, HTTP) initiated by unexpected processes or to rare destinations.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 0424",
+      "description": "Detects file access or compression utilities followed by outbound connections using curl, wget, ftp, or custom binaries communicating over unencrypted protocols.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "NSM:Flow",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 0425",
+      "description": "Detects abnormal outbound HTTP/FTP connections by local scripts or binaries outside of standard browser activity, following access to local documents or user data.",
+      "logs": [
+       "macos:osquery",
+       "macos:osquery",
+       "macos:unifiedlog",
+       "NSM:Flow"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1048/003"
+ },
+ {
+  "id": "T1049",
+  "name": "System Network Connections Discovery",
+  "tactics": [
+   "Discovery"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may attempt to get a listing of network connections to or from the compromised system they are currently accessing or from remote systems by querying for information over the network. \n\nAn adversary who gains access to a system that is part of a cloud-based environment may map out Virtual Private Clouds or Virtual Networks in order to determine what systems and services are connected. The actions performed are likely the same types of discovery techniques depending on the operating system, but the resulting information may include details about the networked cloud environment relevant to the adversary's goals. Cloud providers may have different ways in which their virtual networks operate.(Citation: Amazon AWS VPC Guide)(Citation: Microsoft Azure Virtual Network Overview)(Citation: Google VPC Overview) Similarly, adversaries who gain access to network devices may also perform similar discovery activities to gather information about connected systems and services.\n\nUtilities and commands that acquire this information include [netstat](https://attack.mitre.org/software/S0104), \"net use,\" and \"net session\" with [Net](https://attack.mitre.org/software/S0039). In Mac and Linux, [netstat](https://attack.mitre.org/software/S0104) and <code>lsof</code> can be used to list current connections. <code>who -a</code> and <code>w</code> can be used to show which users are current",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Detection of System Network Connections Discovery Across Platforms",
+    "strategy_id": "DET0320",
+    "analytics": [
+     {
+      "name": "Analytic 0903",
+      "description": "Detects usage of commands or binaries (e.g., netstat, PowerShell Get-NetTCPConnection) and WMI or API calls to enumerate local or remote network connections.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:PowerShell"
+      ]
+     },
+     {
+      "name": "Analytic 0904",
+      "description": "Detects use of netstat, ss, lsof, or custom shell scripts to list current network connections. Often paired with privilege escalation or staging.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:cli"
+      ]
+     },
+     {
+      "name": "Analytic 0905",
+      "description": "Detects shell-based enumeration of active connections using `netstat`, `lsof -i`, or AppleScript-based system discovery.",
+      "logs": [
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1049"
+ },
+ {
+  "id": "T1053",
+  "name": "Scheduled Task/Job",
+  "tactics": [
+   "Execution",
+   "Persistence",
+   "Privilege Escalation"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may abuse task scheduling functionality to facilitate initial or recurring execution of malicious code. Utilities exist within all major operating systems to schedule programs or scripts to be executed at a specified date and time. A task can also be scheduled on a remote system, provided the proper authentication is met (ex: RPC and file and printer sharing in Windows environments). Scheduling a task on a remote system typically may require being a member of an admin or otherwise privileged group on the remote system.(Citation: TechNet Task Scheduler Security)\n\nAdversaries may use task scheduling to execute programs at system startup or on a scheduled basis for persistence. These mechanisms can also be abused to run a process under the context of a specified account (such as one with elevated permissions/privileges). Similar to [System Binary Proxy Execution](https://attack.mitre.org/techniques/T1218), adversaries have also abused task scheduling to potentially mask one-time execution under a trusted system process.(Citation: ProofPoint Serpent)",
+  "mitigations": [
+   "Audit",
+   "Operating System Configuration",
+   "Privileged Account Management",
+   "Restrict File and Directory Permissions",
+   "User Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Cross-Platform Behavioral Detection of Scheduled Task/Job Abuse",
+    "strategy_id": "DET0094",
+    "analytics": [
+     {
+      "name": "Analytic 0258",
+      "description": "Detects creation or modification of scheduled tasks using schtasks.exe, at.exe, or COM objects followed by execution of outlier processes tied to the scheduled job.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0259",
+      "description": "Detects creation or modification of cron jobs via crontab, /etc/cron.* directories, or systemd timer units with execution by unusual users or non-standard intervals.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "linux:osquery"
+      ]
+     },
+     {
+      "name": "Analytic 0260",
+      "description": "Detects creation or alteration of LaunchAgents or LaunchDaemons with corresponding plist modification followed by execution of associated binaries.",
+      "logs": [
+       "macos:unifiedlog",
+       "fs:fsusage",
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1053"
+ },
+ {
+  "id": "T1053.005",
+  "name": "Scheduled Task",
+  "tactics": [
+   "Execution",
+   "Persistence",
+   "Privilege Escalation"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may abuse the Windows Task Scheduler to perform task scheduling for initial or recurring execution of malicious code. There are multiple ways to access the Task Scheduler in Windows. The [schtasks](https://attack.mitre.org/software/S0111) utility can be run directly on the command line, or the Task Scheduler can be opened through the GUI within the Administrator Tools section of the Control Panel.(Citation: Stack Overflow) In some cases, adversaries have used a .NET wrapper for the Windows Task Scheduler, and alternatively, adversaries have used the Windows netapi32 library and [Windows Management Instrumentation](https://attack.mitre.org/techniques/T1047) (WMI) to create a scheduled task. Adversaries may also utilize the Powershell Cmdlet `Invoke-CimMethod`, which leverages WMI class `PS_ScheduledTask` to create a scheduled task via an XML path.(Citation: Red Canary - Atomic Red Team)\n\nAn adversary may use Windows Task Scheduler to execute programs at system startup or on a scheduled basis for persistence. The Windows Task Scheduler can also be abused to conduct remote Execution as part of Lateral Movement and/or to run a process under the context of a specified account (such as SYSTEM). Similar to [System Binary Proxy Execution](https://attack.mitre.org/techniques/T1218), adversaries have also abused the Windows Task Scheduler to potentially mask one-time executio",
+  "mitigations": [
+   "Audit",
+   "Operating System Configuration",
+   "Privileged Account Management",
+   "User Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Suspicious Scheduled Task Creation and Execution on Windows",
+    "strategy_id": "DET0441",
+    "analytics": [
+     {
+      "name": "Analytic 1221",
+      "description": "Detects the creation, modification, or deletion of scheduled tasks through Task Scheduler, WMI, PowerShell, or API-based methods followed by execution from svchost.exe or taskeng.exe. Includes detection of hidden or anomalous scheduled tasks, especially those created under SYSTEM or suspicious user contexts.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1053/005"
+ },
+ {
+  "id": "T1057",
+  "name": "Process Discovery",
+  "tactics": [
+   "Discovery"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may attempt to get information about running processes on a system. Information obtained could be used to gain an understanding of common software/applications running on systems within the network. Administrator or otherwise elevated access may provide better process details. Adversaries may use the information from [Process Discovery](https://attack.mitre.org/techniques/T1057) during automated discovery to shape follow-on behaviors, including whether or not the adversary fully infects the target and/or attempts specific actions.\n\nIn Windows environments, adversaries could obtain details on running processes using the [Tasklist](https://attack.mitre.org/software/S0057) utility via [cmd](https://attack.mitre.org/software/S0106) or <code>Get-Process</code> via [PowerShell](https://attack.mitre.org/techniques/T1059/001). Information about processes can also be extracted from the output of [Native API](https://attack.mitre.org/techniques/T1106) calls such as <code>CreateToolhelp32Snapshot</code>. In Mac and Linux, this is accomplished with the <code>ps</code> command. Adversaries may also opt to enumerate processes via `/proc`. ESXi also supports use of the `ps` command, as well as `esxcli system process list`.(Citation: Sygnia ESXi Ransomware 2025)(Citation: Crowdstrike Hypervisor Jackpotting Pt 2 2021)\n\nOn network devices, [Network Device CLI](https://attack.mitre.or",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Detection of Adversarial Process Discovery Behavior",
+    "strategy_id": "DET0034",
+    "analytics": [
+     {
+      "name": "Analytic 0095",
+      "description": "Identifies adversary behavior that launches commands or invokes APIs to enumerate active processes (e.g., tasklist.exe, Get-Process, or CreateToolhelp32Snapshot). Detects execution combined with parent process lineage, network session context, or remote origin.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0096",
+      "description": "Detects execution of common process enumeration utilities (e.g., ps, top, htop) or access to /proc with suspicious ancestry. Correlates command usage with interactive shell context and user role.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "linux:osquery"
+      ]
+     },
+     {
+      "name": "Analytic 0097",
+      "description": "Monitors execution of ps, top, or launchctl with unusual parent processes or from terminal scripts. Also detects AppleScript-based process listing or `system_profiler SPApplicationsDataType` misuse.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1057"
+ },
+ {
+  "id": "T1059",
+  "name": "Command and Scripting Interpreter",
+  "tactics": [
+   "Execution"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may abuse command and script interpreters to execute commands, scripts, or binaries. These interfaces and languages provide ways of interacting with computer systems and are a common feature across many different platforms. Most systems come with some built-in command-line interface and scripting capabilities, for example, macOS and Linux distributions include some flavor of [Unix Shell](https://attack.mitre.org/techniques/T1059/004) while Windows installations include the [Windows Command Shell](https://attack.mitre.org/techniques/T1059/003) and [PowerShell](https://attack.mitre.org/techniques/T1059/001).\n\nThere are also cross-platform interpreters such as [Python](https://attack.mitre.org/techniques/T1059/006), as well as those commonly associated with client applications such as [JavaScript](https://attack.mitre.org/techniques/T1059/007) and [Visual Basic](https://attack.mitre.org/techniques/T1059/005).\n\nAdversaries may abuse these technologies in various ways as a means of executing arbitrary commands. Commands and scripts can be embedded in [Initial Access](https://attack.mitre.org/tactics/TA0001) payloads delivered to victims as lure documents or as secondary payloads downloaded from an existing C2. Adversaries may also execute commands through interactive terminals/shells, as well as utilize various [Remote Services](https://attack.mitre.org/techniques/T1021)",
+  "mitigations": [
+   "Antivirus/Antimalware",
+   "Audit",
+   "Behavior Prevention on Endpoint",
+   "Code Signing",
+   "Disable or Remove Feature or Program",
+   "Execution Prevention",
+   "Limit Software Installation",
+   "Privileged Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection of Command and Scripting Interpreter Abuse",
+    "strategy_id": "DET0516",
+    "analytics": [
+     {
+      "name": "Analytic 1428",
+      "description": "Detects the execution of scripting or command interpreters (e.g., powershell.exe, cmd.exe, wscript.exe) outside expected administrative time windows or from abnormal user contexts, often followed by encoded/obfuscated arguments or secondary execution events.",
+      "logs": [
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1429",
+      "description": "Detects use of shell interpreters (e.g., bash, sh, python, perl) initiated by users or processes not normally executing them, especially when chaining suspicious utilities like netcat, curl, or ssh.",
+      "logs": [
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 1430",
+      "description": "Detects launch of command-line interpreters via Terminal, Automator, or hidden `osascript`, especially when parent process lineage deviates from user-initiated applications.",
+      "logs": [
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1059"
+ },
+ {
+  "id": "T1059.004",
+  "name": "Unix Shell",
+  "tactics": [
+   "Execution"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may abuse Unix shell commands and scripts for execution. Unix shells are the primary command prompt on Linux, macOS, and ESXi systems, though many variations of the Unix shell exist (e.g. sh, ash, bash, zsh, etc.) depending on the specific OS or distribution.(Citation: DieNet Bash)(Citation: Apple ZShell) Unix shells can control every aspect of a system, with certain commands requiring elevated privileges.\n\nUnix shells also support scripts that enable sequential execution of commands as well as other typical programming operations such as conditionals and loops. Common uses of shell scripts include long or repetitive tasks, or the need to run the same set of commands on multiple systems.\n\nAdversaries may abuse Unix shells to execute various commands or payloads. Interactive shells may be accessed through command and control channels or during lateral movement such as with [SSH](https://attack.mitre.org/techniques/T1021/004). Adversaries may also leverage shell scripts to deliver and execute multiple commands on victims or as part of payloads used for persistence.\n\nSome systems, such as embedded devices, lightweight Linux distributions, and ESXi servers, may leverage stripped-down Unix shells via Busybox, a small executable that contains a variety of tools, including a simple shell.",
+  "mitigations": [
+   "Execution Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection of Unix Shell Execution",
+    "strategy_id": "DET0384",
+    "analytics": [
+     {
+      "name": "Analytic 1081",
+      "description": "Detects bash, sh, zsh, or BusyBox shell execution initiated via remote sessions, unauthorized users, or embedded within secondary script interpreters. Focus is on chained behavior: shell > suspicious commands > network discovery or persistence indicators.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:osquery",
+       "linux:syslog"
+      ]
+     },
+     {
+      "name": "Analytic 1082",
+      "description": "Identifies use of sh/bash/zsh in suspicious context, such as user scripts launched from non-standard apps (e.g., Preview.app), embedded in LaunchDaemons, or executed outside Terminal.app. Looks for misuse in Automator, LaunchAgents, or NSAppleScript-executed shell.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery",
+       "macos:syslog"
+      ]
+     },
+     {
+      "name": "Analytic 1083",
+      "description": "Detects BusyBox or Ash shell execution from unauthorized logins or remote connections. Focus is on rare shell invocations from DCUI, SSH sessions, or remote management paths. Also watches for payload droppers or persistence artifacts using shell.",
+      "logs": [
+       "esxi:vmkernel",
+       "esxi:auth"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1059/004"
+ },
+ {
+  "id": "T1070",
+  "name": "Indicator Removal",
+  "tactics": [
+   "Stealth"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may selectively delete or modify artifacts generated to reduce indications of their presence and blend in with legitimate activity. Rather than broadly removing evidence, adversaries may target specific artifacts that appear anomalous or are likely to draw scrutiny, while leaving sufficient data intact to maintain the appearance of normal system behavior.\n\nArtifacts such as command histories, log entries, or file metadata may be altered in ways that align with expected user or system activity. Location, format, and type of artifact (such as command or login history) are often platform-specific, allowing adversaries to tailor modifications that minimize suspicion.\n\nThese actions may not prevent detection entirely but can delay recognition of malicious activity or reduce the fidelity of alerts by making events appear benign or consistent with routine operations. Additionally, selectively removed or modified artifacts may still be recoverable through deeper forensic analysis, though their absence or alteration can complicate timeline reconstruction and attribution.",
+  "mitigations": [
+   "Encrypt Sensitive Information",
+   "Remote Data Storage",
+   "Restrict File and Directory Permissions"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection of Indicator Removal Across Platforms",
+    "strategy_id": "DET0184",
+    "analytics": [
+     {
+      "name": "Analytic 0520",
+      "description": "Monitors sequences involving deletion/modification of logs, registry keys, scheduled tasks, or prefetch files following suspicious process activity or elevated access escalation.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0521",
+      "description": "Detects deletion or overwriting of bash history, syslog, audit logs, and .ssh metadata following privilege elevation or suspicious process spawning.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:cli"
+      ]
+     },
+     {
+      "name": "Analytic 0522",
+      "description": "Detects clearing of unified logs, deletion of plist files tied to persistence, and manipulation of Terminal history after initial execution.",
+      "logs": [
+       "macos:unifiedlog",
+       "fs:fsusage",
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1070"
+ },
+ {
+  "id": "T1070.004",
+  "name": "File Deletion",
+  "tactics": [
+   "Stealth"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may delete files left behind by the actions of their intrusion activity. Malware, tools, or other non-native files dropped or created on a system by an adversary (ex: [Ingress Tool Transfer](https://attack.mitre.org/techniques/T1105)) may leave traces to indicate to what was done within a network and how. Removal of these files can occur during an intrusion, or as part of a post-intrusion process to minimize the adversary's footprint.\n\nThere are tools available from the host operating system to perform cleanup, but adversaries may use other tools as well.(Citation: Microsoft SDelete July 2016) Examples of built-in [Command and Scripting Interpreter](https://attack.mitre.org/techniques/T1059) functions include <code>del</code> on Windows, <code>rm</code> or <code>unlink</code> on Linux and macOS, and `rm` on ESXi.",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection of Malicious File Deletion",
+    "strategy_id": "DET0140",
+    "analytics": [
+     {
+      "name": "Analytic 0392",
+      "description": "Detects adversary behavior deleting artifacts (e.g., dropped payloads, evidence files) using native or external utilities (e.g., del, erase, SDelete). Detects deletion events correlated with unusual process lineage or timing post-execution.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security",
+       "WinEventLog:PowerShell"
+      ]
+     },
+     {
+      "name": "Analytic 0393",
+      "description": "Detects deletion of suspicious files (e.g., payloads, temp exes, scripts) via `rm`, `unlink`, or secure deletion tools like `shred`, especially when performed by unexpected users or shortly after execution.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 0394",
+      "description": "Detects removal of adversary artifacts via `rm`, `unlink`, or secure tools, with focus on shell sessions, temp files, and modified LaunchAgents or system directories.",
+      "logs": [
+       "fs:fsusage",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1070/004"
+ },
+ {
+  "id": "T1070.006",
+  "name": "Timestomp",
+  "tactics": [
+   "Stealth"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may modify file time attributes to hide new files or changes to existing files. Timestomping is a technique that modifies the timestamps of a file (the modify, access, create, and change times), often to mimic files that are in the same folder and blend malicious files with legitimate files.\n\nIn Windows systems, both the `$STANDARD_INFORMATION` (`$SI`) and `$FILE_NAME` (`$FN`) attributes record times in a Master File Table (MFT) file.(Citation: Inversecos Timestomping 2022) `$SI` (dates/time stamps) is displayed to the end user, including in the File System view, while `$FN` is dealt with by the kernel.(Citation: Magnet Forensics)\n\nModifying the `$SI` attribute is the most common method of timestomping because it can be modified at the user level using API calls. `$FN` timestomping, however, typically requires interacting with the system kernel or moving or renaming a file.(Citation: Inversecos Timestomping 2022)\n\nAdversaries modify timestamps on files so that they do not appear conspicuous to forensic investigators or file analysis tools. In order to evade detections that rely on identifying discrepancies between the `$SI` and `$FN` attributes, adversaries may also engage in “double timestomping” by modifying times on both attributes simultaneously.(Citation: Double Timestomping)\n\nIn Linux systems and on ESXi servers, threat actors may attempt to perform timestompi",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Cross-Platform Behavioral Detection of File Timestomping via Metadata Tampering",
+    "strategy_id": "DET0591",
+    "analytics": [
+     {
+      "name": "Analytic 1626",
+      "description": "Detects attempts to modify file timestamps via API usage (e.g., `SetFileTime`), CLI tools (e.g., `w32tm`, PowerShell), or double-timestomp behavior where $SI and $FN timestamps are mismatched or reverted.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security",
+       "EDR:file"
+      ]
+     },
+     {
+      "name": "Analytic 1627",
+      "description": "Detects use of timestamp-altering commands like `touch -a -m -t` or `touch -r`, particularly when executed by unusual users or in suspicious directories.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:osquery"
+      ]
+     },
+     {
+      "name": "Analytic 1628",
+      "description": "Detects timestamp changes using `touch`, `SetFile`, or direct metadata tampering (e.g., xattr manipulation) from Terminal, scripts, or low-level APIs.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1070/006"
+ },
+ {
+  "id": "T1071",
+  "name": "Application Layer Protocol",
+  "tactics": [
+   "Command and Control"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may communicate using OSI application layer protocols to avoid detection/network filtering by blending in with existing traffic. Commands to the remote system, and often the results of those commands, will be embedded within the protocol traffic between the client and server. \n\nAdversaries may utilize many different protocols, including those used for web browsing, transferring files, electronic mail, DNS, or publishing/subscribing. For connections that occur internally within an enclave (such as those between a proxy or pivot node and other nodes), commonly used protocols are SMB, SSH, or RDP.(Citation: Mandiant APT29 Eye Spy Email Nov 22)",
+  "mitigations": [
+   "Filter Network Traffic",
+   "Network Intrusion Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Command and Control Over Application Layer Protocols",
+    "strategy_id": "DET0444",
+    "analytics": [
+     {
+      "name": "Analytic 1225",
+      "description": "Detects suspicious usage of common application-layer protocols (e.g., HTTP, HTTPS, DNS, SMB) by abnormal processes, with high outbound byte counts or irregular ports, possibly indicating command and control or data exfiltration.",
+      "logs": [
+       "NSM:Flow",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1226",
+      "description": "Detects suspicious curl, wget, or custom socket traffic that leverages DNS, HTTPS, or IRC-style protocols with unbalanced traffic or beacon-like intervals.",
+      "logs": [
+       "NSM:Flow",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 1227",
+      "description": "Detects applications using abnormal protocols or high volume traffic not previously associated with the process image, such as Automator or AppleScript invoking curl or python sockets.",
+      "logs": [
+       "macos:osquery",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1071"
+ },
+ {
+  "id": "T1071.001",
+  "name": "Web Protocols",
+  "tactics": [
+   "Command and Control"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may communicate using application layer protocols associated with web traffic to avoid detection/network filtering by blending in with existing traffic. Commands to the remote system, and often the results of those commands, will be embedded within the protocol traffic between the client and server. \n\nProtocols such as HTTP/S(Citation: CrowdStrike Putter Panda) and WebSocket(Citation: Brazking-Websockets) that carry web traffic may be very common in environments. HTTP/S packets have many fields and headers in which data can be concealed. An adversary may abuse these protocols to communicate with systems under their control within a victim network while also mimicking normal, expected traffic.",
+  "mitigations": [
+   "Filter Network Traffic",
+   "Network Intrusion Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Web Protocol-Based C2 Over HTTP, HTTPS, or WebSockets",
+    "strategy_id": "DET0027",
+    "analytics": [
+     {
+      "name": "Analytic 0075",
+      "description": "Detects unexpected or high-volume HTTP/S/WebSocket communication from suspicious processes (e.g., PowerShell, rundll32) using uncommon user agents or mimicking browser traffic to unusual domains or IPs.",
+      "logs": [
+       "NSM:Flow",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0076",
+      "description": "Detects curl, wget, Python requests, or custom HTTP clients communicating over non-standard ports, with repetitive or beacon-like patterns or POST-heavy behavior to rare domains.",
+      "logs": [
+       "NSM:Flow",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 0077",
+      "description": "Detects applications such as Automator, AppleScript, or LaunchDaemons invoking HTTP/S traffic to non-standard domains or using suspicious headers (e.g., Base64 in URIs or cookie fields).",
+      "logs": [
+       "macos:osquery",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1071/001"
+ },
+ {
+  "id": "T1071.004",
+  "name": "DNS",
+  "tactics": [
+   "Command and Control"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may communicate using the Domain Name System (DNS) application layer protocol to avoid detection/network filtering by blending in with existing traffic. Commands to the remote system, and often the results of those commands, will be embedded within the protocol traffic between the client and server. \n\nThe DNS protocol serves an administrative function in computer networking and thus may be very common in environments. DNS traffic may also be allowed even before network authentication is completed. DNS packets contain many fields and headers in which data can be concealed. Often known as DNS tunneling, adversaries may abuse DNS to communicate with systems under their control within a victim network while also mimicking normal, expected traffic.(Citation: PAN DNS Tunneling)(Citation: Medium DnsTunneling)\n\nDNS beaconing may be used to send commands to remote systems via DNS queries. A DNS beacon is created by tunneling DNS traffic (i.e. [Protocol Tunneling](https://attack.mitre.org/techniques/T1572)). The commands may be embedded into different DNS records, for example, TXT or A records.(Citation: OilRig Uses Updated BONDUPDATER to Target Middle Eastern Government) DNS beacons may be difficult to detect because the beacons infrequently communicate with infected devices.(Citation: DNS Beacons) Infrequent communication conceals the malicious DNS traffic with normal DNS t",
+  "mitigations": [
+   "Filter Network Traffic",
+   "Network Intrusion Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection of DNS Tunneling and Application Layer Abuse",
+    "strategy_id": "DET0400",
+    "analytics": [
+     {
+      "name": "Analytic 1121",
+      "description": "Detects high-frequency or anomalous DNS queries initiated by non-browser, non-system processes (e.g., PowerShell, rundll32, python.exe) used to establish command and control via DNS tunneling.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1122",
+      "description": "Detects local daemons or scripts generating outbound DNS queries with long or frequent subdomains, indicative of DNS tunneling via tools like `iodine`, `dnscat2`, or `dig` from cronjobs or reverse shells.",
+      "logs": [
+       "auditd:SYSCALL",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1123",
+      "description": "Detects scripting environments (AppleScript, osascript, curl) or non-native tools performing DNS queries with encoded subdomains, often used for data exfiltration or beaconing.",
+      "logs": [
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1071/004"
+ },
+ {
+  "id": "T1074",
+  "name": "Data Staged",
+  "tactics": [
+   "Collection"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may stage collected data in a central location or directory prior to Exfiltration. Data may be kept in separate files or combined into one file through techniques such as [Archive Collected Data](https://attack.mitre.org/techniques/T1560). Interactive command shells may be used, and common functionality within [cmd](https://attack.mitre.org/software/S0106) and bash may be used to copy data into a staging location.(Citation: PWC Cloud Hopper April 2017)\n\nIn cloud environments, adversaries may stage data within a particular instance or virtual machine before exfiltration. An adversary may [Create Cloud Instance](https://attack.mitre.org/techniques/T1578/002) and stage data in that instance.(Citation: Mandiant M-Trends 2020)\n\nAdversaries may choose to stage data from a victim network in a centralized location prior to Exfiltration to minimize the number of connections made to their C2 server and better evade detection.",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Detection of Data Staging Prior to Exfiltration",
+    "strategy_id": "DET0014",
+    "analytics": [
+     {
+      "name": "Analytic 0040",
+      "description": "Detects staging of sensitive files into temporary or public directories, compression with 7zip/WinRAR, or batch copy prior to exfiltration.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0041",
+      "description": "Detects script or user activity copying files to a central temp or /mnt directory followed by archive/compression utilities.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 0042",
+      "description": "Detects files collected into user temp or shared directories followed by compression with ditto, zip, or custom scripts.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1074"
+ },
+ {
+  "id": "T1074.001",
+  "name": "Local Data Staging",
+  "tactics": [
+   "Collection"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may stage collected data in a central location or directory on the local system prior to Exfiltration. Data may be kept in separate files or combined into one file through techniques such as [Archive Collected Data](https://attack.mitre.org/techniques/T1560). Interactive command shells may be used, and common functionality within [cmd](https://attack.mitre.org/software/S0106) and bash may be used to copy data into a staging location.\n\nAdversaries may also stage collected data in various available formats/locations of a system, including local storage databases/repositories or the Windows Registry.(Citation: Prevailion DarkWatchman 2021)",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Detection of Local Data Staging Prior to Exfiltration",
+    "strategy_id": "DET0261",
+    "analytics": [
+     {
+      "name": "Analytic 0724",
+      "description": "Detects file reads across locations followed by writes to temp or staging directories, often compressed or encrypted, indicating local staging behavior.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security"
+      ]
+     },
+     {
+      "name": "Analytic 0725",
+      "description": "Detects aggregation of files from different directories into /tmp, /mnt, or user-specified directories with archiving tools like tar or gzip.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 0726",
+      "description": "Detects staged data aggregated in /Users/Shared, /private/tmp with compression tools like ditto or zip, initiated via Terminal or AppleScript.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1074/001"
+ },
+ {
+  "id": "T1078",
+  "name": "Valid Accounts",
+  "tactics": [
+   "Initial Access",
+   "Persistence",
+   "Privilege Escalation",
+   "Stealth"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion. Compromised credentials may be used to bypass access controls placed on various resources on systems within the network and may even be used for persistent access to remote systems and externally available services, such as VPNs, Outlook Web Access, network devices, and remote desktop.(Citation: volexity_0day_sophos_FW) Compromised credentials may also grant an adversary increased privilege to specific systems or access to restricted areas of the network. Adversaries may choose not to use malware or tools in conjunction with the legitimate access those credentials provide to make it harder to detect their presence.\n\nIn some cases, adversaries may abuse inactive accounts: for example, those belonging to individuals who are no longer part of an organization. Using these accounts may allow the adversary to evade detection, as the original account user will not be present to identify any anomalous activity taking place on their account.(Citation: CISA MFA PrintNightmare)\n\nThe overlap of permissions for local, domain, and cloud accounts across a network of systems is of concern because the adversary may be able to pivot across accounts and systems to reach a high level of access (i.e., domain or enterprise administrator) to by",
+  "mitigations": [
+   "Account Use Policies",
+   "Active Directory Configuration",
+   "Application Developer Guidance",
+   "Multi-factor Authentication",
+   "Password Policies",
+   "Privileged Account Management",
+   "User Account Management",
+   "User Training"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Valid Account Abuse Across Platforms",
+    "strategy_id": "DET0560",
+    "analytics": [
+     {
+      "name": "Analytic 1543",
+      "description": "Detection of compromised or misused valid accounts via anomalous logon patterns, abnormal logon types, and inconsistent geographic or time-based activity across Windows endpoints.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1544",
+      "description": "Detection of valid account misuse through SSH logins, sudo/su abuse, and service account anomalies outside expected patterns.",
+      "logs": [
+       "auditd:SYSCALL",
+       "NSM:Connections"
+      ]
+     },
+     {
+      "name": "Analytic 1545",
+      "description": "Detection of interactive and remote logins by service accounts or users at unusual times, with unexpected child process activity.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1078"
+ },
+ {
+  "id": "T1078.002",
+  "name": "Domain Accounts",
+  "tactics": [
+   "Initial Access",
+   "Persistence",
+   "Privilege Escalation",
+   "Stealth"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may obtain and abuse credentials of a domain account as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.(Citation: TechNet Credential Theft) Domain accounts are those managed by Active Directory Domain Services where access and permissions are configured across systems and services that are part of that domain. Domain accounts can cover users, administrators, and services.(Citation: Microsoft AD Accounts)\n\nAdversaries may compromise domain accounts, some with a high level of privileges, through various means such as [OS Credential Dumping](https://attack.mitre.org/techniques/T1003) or password reuse, allowing access to privileged resources of the domain.",
+  "mitigations": [
+   "Multi-factor Authentication",
+   "Password Policies",
+   "Privileged Account Management",
+   "User Account Management",
+   "User Training"
+  ],
+  "detection": [
+   {
+    "strategy": "Abuse of Domain Accounts",
+    "strategy_id": "DET0210",
+    "analytics": [
+     {
+      "name": "Analytic 0590",
+      "description": "Detection of suspicious logon behavior using valid domain accounts across multiple hosts, off-hours, or simultaneous sessions from geographically distant locations.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0591",
+      "description": "Use of domain accounts via sssd or winbind for logon activity outside of typical patterns, especially on sensitive systems or with lateral movement tools.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:syslog"
+      ]
+     },
+     {
+      "name": "Analytic 0592",
+      "description": "Domain logins using network accounts or mobile accounts via Open Directory or Active Directory plugins, especially outside business hours or on atypical endpoints.",
+      "logs": [
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1078/002"
+ },
+ {
+  "id": "T1078.003",
+  "name": "Local Accounts",
+  "tactics": [
+   "Initial Access",
+   "Persistence",
+   "Privilege Escalation",
+   "Stealth"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may obtain and abuse credentials of a local account as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion. Local accounts are those configured by an organization for use by users, remote support, services, or for administration on a single system or service.\n\nLocal Accounts may also be abused to elevate privileges and harvest credentials through [OS Credential Dumping](https://attack.mitre.org/techniques/T1003). Password reuse may allow the abuse of local accounts across a set of machines on a network for the purposes of Privilege Escalation and Lateral Movement.",
+  "mitigations": [
+   "Multi-factor Authentication",
+   "Password Policies",
+   "Privileged Account Management",
+   "User Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Local Account Abuse for Initial Access and Persistence",
+    "strategy_id": "DET0407",
+    "analytics": [
+     {
+      "name": "Analytic 1137",
+      "description": "Detects anomalous usage of local accounts to log into a system, especially accounts not typically used interactively or outside business hours.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Security"
+      ]
+     },
+     {
+      "name": "Analytic 1138",
+      "description": "Detects interactive or service logins from local accounts outside expected operational context or at anomalous times.",
+      "logs": [
+       "auditd:USER_LOGIN",
+       "linux:auth"
+      ]
+     },
+     {
+      "name": "Analytic 1139",
+      "description": "Detects abnormal or rare logins via local accounts through system or remote mechanisms such as SSH.",
+      "logs": [
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1078/003"
+ },
+ {
+  "id": "T1082",
+  "name": "System Information Discovery",
+  "tactics": [
+   "Discovery"
+  ],
+  "is_subtechnique": false,
+  "description": "An adversary may attempt to get detailed information about the operating system and hardware, including version, patches, hotfixes, service packs, and architecture. Adversaries may use this information to shape follow-on behaviors, including whether or not the adversary fully infects the target and/or attempts specific actions. This behavior is distinct from [Local Storage Discovery](https://attack.mitre.org/techniques/T1680) which is an adversary's discovery of local drive, disks and/or volumes.\n\nTools such as [Systeminfo](https://attack.mitre.org/software/S0096) can be used to gather detailed system information. If running with privileged access, a breakdown of system data can be gathered through the <code>systemsetup</code> configuration tool on macOS. Adversaries may leverage a [Network Device CLI](https://attack.mitre.org/techniques/T1059/008) on network devices to gather detailed system information (e.g. <code>show version</code>).(Citation: US-CERT-TA18-106A) On ESXi servers, threat actors may gather system information from various esxcli utilities, such as `system hostname get` and `system version get`.(Citation: Crowdstrike Hypervisor Jackpotting Pt 2 2021)(Citation: Varonis)\n\nInfrastructure as a Service (IaaS) cloud providers such as AWS, GCP, and Azure allow access to instance and virtual machine information via APIs. Successful authenticated API calls can return dat",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "System Discovery via Native and Remote Utilities",
+    "strategy_id": "DET0525",
+    "analytics": [
+     {
+      "name": "Analytic 1452",
+      "description": "Detection of processes executing system environment inspection operations followed by access to OS configuration APIs or registry locations that expose OS version, architecture, patch level, or hardware characteristics. Defenders observe process execution retrieving system configuration metadata immediately after process startup.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:PowerShell",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1453",
+      "description": "Execution of system enumeration commands such as `uname`, `df`, `uptime`, `hostname`, `lscpu`, and `cat /etc/os-release` through local terminal or scripts.",
+      "logs": [
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 1454",
+      "description": "Execution of system info utilities like `systemsetup`, `sw_vers`, `uname`, or `sysctl` by terminal or scripted processes.",
+      "logs": [
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1082"
+ },
+ {
+  "id": "T1083",
+  "name": "File and Directory Discovery",
+  "tactics": [
+   "Discovery"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may enumerate files and directories or may search in specific locations of a host or network share for certain information within a file system. Adversaries may use the information from [File and Directory Discovery](https://attack.mitre.org/techniques/T1083) during automated discovery to shape follow-on behaviors, including whether or not the adversary fully infects the target and/or attempts specific actions.\n\nMany command shell utilities can be used to obtain this information. Examples include <code>dir</code>, <code>tree</code>, <code>ls</code>, <code>find</code>, and <code>locate</code>.(Citation: Windows Commands JPCERT) Custom tools may also be used to gather file and directory information and interact with the [Native API](https://attack.mitre.org/techniques/T1106). Adversaries may also leverage a [Network Device CLI](https://attack.mitre.org/techniques/T1059/008) on network devices to gather file and directory information (e.g. <code>dir</code>, <code>show flash</code>, and/or <code>nvram</code>).(Citation: US-CERT-TA18-106A)\n\nSome files and directories may require elevated or specific user permissions to access.",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Recursive Enumeration of Files and Directories Across Privilege Contexts",
+    "strategy_id": "DET0370",
+    "analytics": [
+     {
+      "name": "Analytic 1040",
+      "description": "Execution of file enumeration commands (e.g., 'dir', 'tree') from non-standard processes or unusual user contexts, followed by recursive directory traversal or access to sensitive locations.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1041",
+      "description": "Use of file enumeration commands (e.g., 'ls', 'find', 'locate') executed by suspicious users or scripts accessing broad file hierarchies or restricted directories.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:PATH"
+      ]
+     },
+     {
+      "name": "Analytic 1042",
+      "description": "Execution of file or directory discovery commands (e.g., 'ls', 'find') from terminal or script-based tooling, especially outside normal user workflows.",
+      "logs": [
+       "macos:unifiedlog",
+       "fs:fsusage"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1083"
+ },
+ {
+  "id": "T1087",
+  "name": "Account Discovery",
+  "tactics": [
+   "Discovery"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may attempt to get a listing of valid accounts, usernames, or email addresses on a system or within a compromised environment. This information can help adversaries determine which accounts exist, which can aid in follow-on behavior such as brute-forcing, spear-phishing attacks, or account takeovers (e.g., [Valid Accounts](https://attack.mitre.org/techniques/T1078)).\n\nAdversaries may use several methods to enumerate accounts, including abuse of existing tools, built-in commands, and potential misconfigurations that leak account names and roles or permissions in the targeted environment.\n\nFor examples, cloud environments typically provide easily accessible interfaces to obtain user lists.(Citation: AWS List Users)(Citation: Google Cloud - IAM Servie Accounts List API) On hosts, adversaries can use default [PowerShell](https://attack.mitre.org/techniques/T1059/001) and other command line functionality to identify accounts. Information about email addresses and accounts may also be extracted by searching an infected system’s files.",
+  "mitigations": [
+   "Operating System Configuration",
+   "User Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Enumeration of User or Account Information Across Platforms",
+    "strategy_id": "DET0587",
+    "analytics": [
+     {
+      "name": "Analytic 1612",
+      "description": "Detection of processes performing local or domain account enumeration by invoking account directory queries or security APIs followed by structured output of account lists. The defender observes command execution or API invocation patterns that retrieve account information and produce enumeration artifacts shortly afterward.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security",
+       "WinEventLog:Security"
+      ]
+     },
+     {
+      "name": "Analytic 1613",
+      "description": "Enumeration of users and groups through suspicious shell commands or unauthorized access to /etc/passwd or /etc/shadow.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1614",
+      "description": "Detection of account enumeration through directory service queries or system utilities accessing account metadata stores, followed by structured enumeration output.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1087"
+ },
+ {
+  "id": "T1090",
+  "name": "Proxy",
+  "tactics": [
+   "Command and Control"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may use a connection proxy to direct network traffic between systems or act as an intermediary for network communications to a command and control server to avoid direct connections to their infrastructure. Many tools exist that enable traffic redirection through proxies or port redirection, including [HTRAN](https://attack.mitre.org/software/S0040), ZXProxy, and ZXPortMap.(Citation: Trend Micro APT Attack Tools) Adversaries use these types of proxies to manage command and control communications, reduce the number of simultaneous outbound network connections, provide resiliency in the face of connection loss, or to ride over existing trusted communications paths between victims to avoid suspicion. Adversaries may chain together multiple proxies to further disguise the source of malicious traffic.\n\nAdversaries can also take advantage of routing schemes in Content Delivery Networks (CDNs) to proxy command and control traffic.",
+  "mitigations": [
+   "Filter Network Traffic",
+   "Network Intrusion Prevention",
+   "SSL/TLS Inspection"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Proxy Infrastructure Setup and Traffic Bridging",
+    "strategy_id": "DET0445",
+    "analytics": [
+     {
+      "name": "Analytic 1229",
+      "description": "Suspicious process spawning (e.g., `rundll32`, `svchost`, `powershell`, or `netsh`) followed by network connection creation to internal hosts or uncommon external endpoints on high or non-standard ports.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "NSM:Connections"
+      ]
+     },
+     {
+      "name": "Analytic 1230",
+      "description": "User-space tools (e.g., `socat`, `ncat`, `iptables`, `ssh`) used in non-standard ways to establish reverse shells, port-forwarding, or inter-host connections. Often chained with uncommon outbound destinations or SSH tunnels.",
+      "logs": [
+       "auditd:SYSCALL",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1231",
+      "description": "AppleScript, LaunchAgents, or remote login services (`ssh`, `networksetup`) establishing proxy tunnels or dynamic port forwards to external IPs or alternate local hosts.",
+      "logs": [
+       "macos:unifiedlog",
+       "NSM:Firewall",
+       "NSM:Flow"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1090"
+ },
+ {
+  "id": "T1090.003",
+  "name": "Multi-hop Proxy",
+  "tactics": [
+   "Command and Control"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may chain together multiple proxies to disguise the source of malicious traffic. Typically, a defender will be able to identify the last proxy traffic traversed before it enters their network; the defender may or may not be able to identify any previous proxies before the last-hop proxy. This technique makes identifying the original source of the malicious traffic even more difficult by requiring the defender to trace malicious traffic through several proxies to identify its source.\n\nFor example, adversaries may construct or use onion routing networks – such as the publicly available [Tor](https://attack.mitre.org/software/S0183) network – to transport encrypted C2 traffic through a compromised population, allowing communication with any device within the network.(Citation: Onion Routing) Adversaries may also use operational relay box (ORB) networks composed of virtual private servers (VPS), Internet of Things (IoT) devices, smart devices, and end-of-life routers to obfuscate their operations.(Citation: ORB Mandiant) \n\nIn the case of network infrastructure, it is possible for an adversary to leverage multiple compromised devices to create a multi-hop proxy chain (i.e., [Network Devices](https://attack.mitre.org/techniques/T1584/008)). By leveraging [Patch System Image](https://attack.mitre.org/techniques/T1601/001) on routers, adversaries can add custom code to the ",
+  "mitigations": [
+   "Filter Network Traffic"
+  ],
+  "detection": [
+   {
+    "strategy": "Multi-hop Proxy Behavior via Relay Node Chaining, Onion Routing, and Network Tunneling",
+    "strategy_id": "DET0359",
+    "analytics": [
+     {
+      "name": "Analytic 1020",
+      "description": "Suspicious processes (e.g., Tor clients, relays, unknown binaries) launch with sustained encrypted outbound traffic to known anonymity infrastructure (e.g., Tor, I2P), and may relay to additional internal systems via reverse proxying, ICMP tunneling, or socket forwarding.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "dns:query"
+      ]
+     },
+     {
+      "name": "Analytic 1021",
+      "description": "Tools such as `tor`, `nglite`, `proxychains`, `chisel`, or custom daemons repeatedly initiate outbound sessions to multiple nodes before final destination. This behavior is abnormal for Linux services outside of VPN, monitoring, or CDN relay contexts.",
+      "logs": [
+       "auditd:SYSCALL",
+       "NSM:Flow",
+       "Netfilter/iptables"
+      ]
+     },
+     {
+      "name": "Analytic 1022",
+      "description": "LaunchAgents or LaunchDaemons initiate persistent Tor or relay processes that make encrypted outbound connections. May be paired with sandbox bypasses or unsigned executables communicating over SOCKS proxies.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:osquery",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1090/003"
+ },
+ {
+  "id": "T1105",
+  "name": "Ingress Tool Transfer",
+  "tactics": [
+   "Command and Control"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may transfer tools or other files from an external system into a compromised environment. Tools or files may be copied from an external adversary-controlled system to the victim network through the command and control channel or through alternate protocols such as [ftp](https://attack.mitre.org/software/S0095). Once present, adversaries may also transfer/spread tools between victim devices within a compromised environment (i.e. [Lateral Tool Transfer](https://attack.mitre.org/techniques/T1570)). \n\nOn Windows, adversaries may use various utilities to download tools, such as `copy`, `finger`, [certutil](https://attack.mitre.org/software/S0160), and [PowerShell](https://attack.mitre.org/techniques/T1059/001) commands such as <code>IEX(New-Object Net.WebClient).downloadString()</code> and <code>Invoke-WebRequest</code>. On Linux and macOS systems, a variety of utilities also exist, such as `curl`, `scp`, `sftp`, `tftp`, `rsync`, `finger`, and `wget`.(Citation: t1105_lolbas)  A number of these tools, such as `wget`, `curl`, and `scp`, also exist on ESXi. After downloading a file, a threat actor may attempt to verify its integrity by checking its hash value (e.g., via `certutil -hashfile`).(Citation: Google Cloud Threat Intelligence COSCMICENERGY 2023)\n\nAdversaries may also abuse installers and package managers, such as `yum` or `winget`, to download tools to victim hosts",
+  "mitigations": [
+   "Filter Network Traffic",
+   "Network Intrusion Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Detect Ingress Tool Transfers via Behavioral Chain",
+    "strategy_id": "DET0060",
+    "analytics": [
+     {
+      "name": "Analytic 0165",
+      "description": "Unusual or uncommon processes initiate network connections to external destinations followed by file creation (tools downloaded).",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0166",
+      "description": "Shell-based tools (curl, wget, scp) initiate connections to external domains followed by creation of executable files on disk.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL",
+       "iptables:LOG"
+      ]
+     },
+     {
+      "name": "Analytic 0167",
+      "description": "Process execution of curl or wget followed by a network connection and a file created in temporary or user-specific directories.",
+      "logs": [
+       "macos:endpointsecurity",
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1105"
+ },
+ {
+  "id": "T1106",
+  "name": "Native API",
+  "tactics": [
+   "Execution"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may interact with the native OS application programming interface (API) to execute behaviors. Native APIs provide a controlled means of calling low-level OS services within the kernel, such as those involving hardware/devices, memory, and processes.(Citation: NT API Windows)(Citation: Linux Kernel API) These native APIs are leveraged by the OS during system boot (when other system components are not yet initialized) as well as carrying out tasks and requests during routine operations.\n\nAdversaries may abuse these OS API functions as a means of executing behaviors. Similar to [Command and Scripting Interpreter](https://attack.mitre.org/techniques/T1059), the native API and its hierarchy of interfaces provide mechanisms to interact with and utilize various components of a victimized system.\n\nNative API functions (such as <code>NtCreateProcess</code>) may be directly invoked via system calls / syscalls, but these features are also often exposed to user-mode applications via interfaces and libraries.(Citation: OutFlank System Calls)(Citation: CyberBit System Calls)(Citation: MDSec System Calls) For example, functions such as the Windows API <code>CreateProcess()</code> or GNU <code>fork()</code> will allow programs and scripts to start other processes.(Citation: Microsoft CreateProcess)(Citation: GNU Fork) This may allow API callers to execute a binary, run a CLI comman",
+  "mitigations": [
+   "Behavior Prevention on Endpoint",
+   "Execution Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavioral Detection of Native API Invocation via Unusual DLL Loads and Direct Syscalls",
+    "strategy_id": "DET0529",
+    "analytics": [
+     {
+      "name": "Analytic 1465",
+      "description": "Unusual or suspicious processes loading critical native API DLLs (e.g., ntdll.dll, kernel32.dll) followed by direct syscall behavior, memory manipulation, or hollowing.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1466",
+      "description": "Userland processes invoking syscall-heavy libraries (libc, glibc) followed by fork, mmap, or ptrace behavior commonly associated with code injection or memory manipulation.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 1467",
+      "description": "Execution of processes that link to CoreServices or Foundation APIs followed by creation of memory regions, code execution, or abnormal library injection.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:endpointsecurity"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1106"
+ },
+ {
+  "id": "T1110",
+  "name": "Brute Force",
+  "tactics": [
+   "Credential Access"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.(Citation: TrendMicro Pawn Storm Dec 2020) Without knowledge of the password for an account or set of accounts, an adversary may systematically guess the password using a repetitive or iterative mechanism.(Citation: Dragos Crashoverride 2018) Brute forcing passwords can take place via interaction with a service that will check the validity of those credentials or offline against previously acquired credential data, such as password hashes.\n\nBrute forcing credentials may take place at various points during a breach. For example, adversaries may attempt to brute force access to [Valid Accounts](https://attack.mitre.org/techniques/T1078) within a victim environment leveraging knowledge gathered from other post-compromise behaviors such as [OS Credential Dumping](https://attack.mitre.org/techniques/T1003), [Account Discovery](https://attack.mitre.org/techniques/T1087), or [Password Policy Discovery](https://attack.mitre.org/techniques/T1201). Adversaries may also combine brute forcing activity with behaviors such as [External Remote Services](https://attack.mitre.org/techniques/T1133) as part of Initial Access. \n\nIf an adversary guesses the correct password but fails to log in to a compromised account due to location-based conditional access policies",
+  "mitigations": [
+   "Account Use Policies",
+   "Multi-factor Authentication",
+   "Password Policies",
+   "User Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Brute Force Authentication Failures with Multi-Platform Log Correlation",
+    "strategy_id": "DET0463",
+    "analytics": [
+     {
+      "name": "Analytic 1275",
+      "description": "High volume of failed logon attempts followed by a successful one from a suspicious user, host, or timeframe",
+      "logs": [
+       "WinEventLog:Security"
+      ]
+     },
+     {
+      "name": "Analytic 1276",
+      "description": "Multiple authentication failures for valid or invalid users followed by success from same IP/user",
+      "logs": [
+       "auditd:USER_LOGIN"
+      ]
+     },
+     {
+      "name": "Analytic 1277",
+      "description": "Password spraying or brute force attempts across user pool within short time intervals",
+      "logs": [
+       "azure:signinlogs"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1110"
+ },
+ {
+  "id": "T1110.001",
+  "name": "Password Guessing",
+  "tactics": [
+   "Credential Access"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries with no prior knowledge of legitimate credentials within the system or environment may guess passwords to attempt access to accounts. Without knowledge of the password for an account, an adversary may opt to systematically guess the password using a repetitive or iterative mechanism. An adversary may guess login credentials without prior knowledge of system or environment passwords during an operation by using a list of common passwords. Password guessing may or may not take into account the target's policies on password complexity or use policies that may lock accounts out after a number of failed attempts.\n\nGuessing passwords can be a risky option because it could cause numerous authentication failures and account lockouts, depending on the organization's login failure policies.(Citation: Cylance Cleaver)\n\nTypically, management services over commonly used ports are used when guessing passwords. Commonly targeted services include the following:\n\n* SSH (22/TCP)\n* Telnet (23/TCP)\n* FTP (21/TCP)\n* NetBIOS / SMB / Samba (139/TCP & 445/TCP)\n* LDAP (389/TCP)\n* Kerberos (88/TCP)\n* RDP / Terminal Services (3389/TCP)\n* HTTP/HTTP Management Services (80/TCP & 443/TCP)\n* MSSQL (1433/TCP)\n* Oracle (1521/TCP)\n* MySQL (3306/TCP)\n* VNC (5900/TCP)\n* SNMP (161/UDP and 162/TCP/UDP)\n\nIn addition to management services, adversaries may \"target single sign-on (SSO) and cloud-based appl",
+  "mitigations": [
+   "Account Use Policies",
+   "Multi-factor Authentication",
+   "Password Policies",
+   "Update Software"
+  ],
+  "detection": [
+   {
+    "strategy": "Password Guessing via Multi-Source Authentication Failure Correlation",
+    "strategy_id": "DET0551",
+    "analytics": [
+     {
+      "name": "Analytic 1521",
+      "description": "Series of authentication failures (Event ID 4625) targeting the same or similar user accounts over time from one or more remote IPs",
+      "logs": [
+       "WinEventLog:Security"
+      ]
+     },
+     {
+      "name": "Analytic 1522",
+      "description": "Repeated failed SSH login attempts followed by a possible success from the same remote host",
+      "logs": [
+       "linux:syslog"
+      ]
+     },
+     {
+      "name": "Analytic 1523",
+      "description": "Series of failed logins from loginwindow or sshd with repeated usernames or password prompts",
+      "logs": [
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1110/001"
+ },
+ {
+  "id": "T1110.003",
+  "name": "Password Spraying",
+  "tactics": [
+   "Credential Access"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may use a single or small list of commonly used passwords against many different accounts to attempt to acquire valid account credentials. Password spraying uses one password (e.g. 'Password01'), or a small list of commonly used passwords, that may match the complexity policy of the domain. Logins are attempted with that password against many different accounts on a network to avoid account lockouts that would normally occur when brute forcing a single account with many passwords.(Citation: BlackHillsInfosec Password Spraying)\n\nTypically, management services over commonly used ports are used when password spraying. Commonly targeted services include the following:\n\n* SSH (22/TCP)\n* Telnet (23/TCP)\n* FTP (21/TCP)\n* NetBIOS / SMB / Samba (139/TCP & 445/TCP)\n* LDAP (389/TCP)\n* Kerberos (88/TCP)\n* RDP / Terminal Services (3389/TCP)\n* HTTP/HTTP Management Services (80/TCP & 443/TCP)\n* MSSQL (1433/TCP)\n* Oracle (1521/TCP)\n* MySQL (3306/TCP)\n* VNC (5900/TCP)\n\nIn addition to management services, adversaries may \"target single sign-on (SSO) and cloud-based applications utilizing federated authentication protocols,\" as well as externally facing email applications, such as Office 365.(Citation: US-CERT TA18-068A 2018)\n\nIn order to avoid detection thresholds, adversaries may deliberately throttle password spraying attempts to avoid triggering security alerting. Additionally, ad",
+  "mitigations": [
+   "Account Use Policies",
+   "Multi-factor Authentication",
+   "Password Policies"
+  ],
+  "detection": [
+   {
+    "strategy": "Distributed Password Spraying via Authentication Failures Across Multiple Accounts",
+    "strategy_id": "DET0487",
+    "analytics": [
+     {
+      "name": "Analytic 1336",
+      "description": "A high volume of authentication failures using a single password (or small set) across many different user accounts within a defined time window",
+      "logs": [
+       "WinEventLog:Security"
+      ]
+     },
+     {
+      "name": "Analytic 1337",
+      "description": "Authentication failures across different accounts using a repeated or similar password via SSH or PAM stack within a short window",
+      "logs": [
+       "linux:syslog"
+      ]
+     },
+     {
+      "name": "Analytic 1338",
+      "description": "Multiple failed login attempts across different users using common password patterns (e.g., 'Welcome2023')",
+      "logs": [
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1110/003"
+ },
+ {
+  "id": "T1110.004",
+  "name": "Credential Stuffing",
+  "tactics": [
+   "Credential Access"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may use credentials obtained from breach dumps of unrelated accounts to gain access to target accounts through credential overlap. Occasionally, large numbers of username and password pairs are dumped online when a website or service is compromised and the user account credentials accessed. The information may be useful to an adversary attempting to compromise accounts by taking advantage of the tendency for users to use the same passwords across personal and business accounts.\n\nCredential stuffing is a risky option because it could cause numerous authentication failures and account lockouts, depending on the organization's login failure policies.\n\nTypically, management services over commonly used ports are used when stuffing credentials. Commonly targeted services include the following:\n\n* SSH (22/TCP)\n* Telnet (23/TCP)\n* FTP (21/TCP)\n* NetBIOS / SMB / Samba (139/TCP & 445/TCP)\n* LDAP (389/TCP)\n* Kerberos (88/TCP)\n* RDP / Terminal Services (3389/TCP)\n* HTTP/HTTP Management Services (80/TCP & 443/TCP)\n* MSSQL (1433/TCP)\n* Oracle (1521/TCP)\n* MySQL (3306/TCP)\n* VNC (5900/TCP)\n\nIn addition to management services, adversaries may \"target single sign-on (SSO) and cloud-based applications utilizing federated authentication protocols,\" as well as externally facing email applications, such as Office 365.(Citation: US-CERT TA18-068A 2018)",
+  "mitigations": [
+   "Account Use Policies",
+   "Multi-factor Authentication",
+   "Password Policies",
+   "User Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Credential Stuffing Detection via Reused Breached Credentials Across Services",
+    "strategy_id": "DET0460",
+    "analytics": [
+     {
+      "name": "Analytic 1262",
+      "description": "Multiple failed authentication attempts using distinct username/password pairs from a single IP address or session within a short time window, targeting common services like RDP or SMB",
+      "logs": [
+       "WinEventLog:Security"
+      ]
+     },
+     {
+      "name": "Analytic 1263",
+      "description": "Rapid login failures across different users from a single IP address, targeting SSH or PAM login with distinct username-password pairs",
+      "logs": [
+       "linux:syslog"
+      ]
+     },
+     {
+      "name": "Analytic 1264",
+      "description": "Burst of failed authentications with rotating usernames against loginwindow or remote management service using reused breached credentials",
+      "logs": [
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1110/004"
+ },
+ {
+  "id": "T1133",
+  "name": "External Remote Services",
+  "tactics": [
+   "Initial Access",
+   "Persistence"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may leverage external-facing remote services to initially access and/or persist within a network. Remote services such as VPNs, Citrix, and other access mechanisms allow users to connect to internal enterprise network resources from external locations. There are often remote service gateways that manage connections and credential authentication for these services. Services such as [Windows Remote Management](https://attack.mitre.org/techniques/T1021/006) and [VNC](https://attack.mitre.org/techniques/T1021/005) can also be used externally.(Citation: MacOS VNC software for Remote Desktop)\n\nAccess to [Valid Accounts](https://attack.mitre.org/techniques/T1078) to use the service is often a requirement, which could be obtained through credential pharming or by obtaining the credentials from users after compromising the enterprise network.(Citation: Volexity Virtual Private Keylogging) Access to remote services may be used as a redundant or persistent access mechanism during an operation.\n\nAccess may also be gained through an exposed service that doesn’t require authentication. In containerized environments, this may include an exposed Docker API, Kubernetes API server, kubelet, or web application such as the Kubernetes dashboard.(Citation: Trend Micro Exposed Docker Server)(Citation: Unit 42 Hildegard Malware)\n\nAdversaries may also establish persistence on network by con",
+  "mitigations": [
+   "Disable or Remove Feature or Program",
+   "Limit Access to Resource Over Network",
+   "Multi-factor Authentication",
+   "Network Segmentation",
+   "Restrict Web-Based Content"
+  ],
+  "detection": [
+   {
+    "strategy": "Behavior-chain detection for T1133 External Remote Services across Windows, Linux, macOS, Containers",
+    "strategy_id": "DET0354",
+    "analytics": [
+     {
+      "name": "Analytic 1004",
+      "description": "Unusual or unauthorized external remote access attempts (e.g., RDP, VPN, Citrix) → repeated failed logins followed by a successful session from uncommon geolocations or outside business hours → subsequent internal lateral movement or data exfiltration activities.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Application",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1005",
+      "description": "Repeated SSH, VPN, or RDP gateway authentication attempts from external IPs → subsequent successful logon → remote shell or lateral movement activity (e.g., scp/sftp).",
+      "logs": [
+       "auditd:SYSCALL",
+       "NSM:Connections",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1006",
+      "description": "Unexpected inbound or outbound VNC/SSH/Screen Sharing connections from external sources → repeated failed logins followed by success → remote interactive sessions or abnormal file transfers.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog",
+       "PF:Logs"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1133"
+ },
+ {
+  "id": "T1140",
+  "name": "Deobfuscate/Decode Files or Information",
+  "tactics": [
+   "Stealth"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may use [Obfuscated Files or Information](https://attack.mitre.org/techniques/T1027) to hide artifacts of an intrusion from analysis. They may require separate mechanisms to decode or deobfuscate that information depending on how they intend to use it. Methods for doing that include built-in functionality of malware or by using utilities present on the system.\n\nOne such example is the use of [certutil](https://attack.mitre.org/software/S0160) to decode a remote access tool portable executable file that has been hidden inside a certificate file.(Citation: Malwarebytes Targeted Attack against Saudi Arabia) Another example is using the Windows <code>copy /b</code> or <code>type</code> command to reassemble binary fragments into a malicious payload.(Citation: Carbon Black Obfuscation Sept 2016)(Citation: Sentinel One Tainted Love 2023)\n\nSometimes a user's action may be required to open it for deobfuscation or decryption as part of [User Execution](https://attack.mitre.org/techniques/T1204). The user may also be required to input a password to open a password protected compressed/encrypted file that was provided by the adversary.(Citation: Volexity PowerDuke November 2016)",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Detect Adversary Deobfuscation or Decoding of Files and Payloads",
+    "strategy_id": "DET0275",
+    "analytics": [
+     {
+      "name": "Analytic 0767",
+      "description": "An adversary leverages built-in tools such as certutil.exe, powershell.exe, or copy.exe to decode, reassemble, or extract hidden malicious content from obfuscated containers or encoded formats. The decoding utility often spawns shortly after file staging or download and may be chained with script interpreters or further payload execution.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0768",
+      "description": "The adversary uses native utilities like base64, gzip, tar, or openssl to decode, decompress, or decrypt files that were previously staged or downloaded. These tools may be chained with curl/wget and executed via bash/zsh, often to extract an embedded payload or reverse shell script.",
+      "logs": [
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 0769",
+      "description": "The adversary invokes built-in scripting or decoding tools like base64, plutil, or AppleScript-based utilities to decode files embedded in staging artifacts. Decoding often occurs post-download or as part of post-exploitation payload deployment via zsh, python, or osascript.",
+      "logs": [
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1140"
+ },
+ {
+  "id": "T1190",
+  "name": "Exploit Public-Facing Application",
+  "tactics": [
+   "Initial Access"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may attempt to exploit a weakness in an Internet-facing host or system to initially access a network. The weakness in the system can be a software bug, a temporary glitch, or a misconfiguration.\n\nExploited applications are often websites/web servers, but can also include databases (like SQL), standard services (like SMB or SSH), network device administration and management protocols (like SNMP and Smart Install), and any other system with Internet-accessible open sockets.(Citation: NVD CVE-2016-6662)(Citation: CIS Multiple SMB Vulnerabilities)(Citation: US-CERT TA18-106A Network Infrastructure Devices 2018)(Citation: Cisco Blog Legacy Device Attacks)(Citation: NVD CVE-2014-7169) On ESXi infrastructure, adversaries may exploit exposed OpenSLP services; they may alternatively exploit exposed VMware vCenter servers.(Citation: Recorded Future ESXiArgs Ransomware 2023)(Citation: Ars Technica VMWare Code Execution Vulnerability 2021) Depending on the flaw being exploited, this may also involve [Exploitation for Stealth](https://attack.mitre.org/techniques/T1211) or [Exploitation for Client Execution](https://attack.mitre.org/techniques/T1203).\n\nIf an application is hosted on cloud-based infrastructure and/or is containerized, then exploiting it may lead to compromise of the underlying instance or container. This can allow an adversary a path to access the cloud or contain",
+  "mitigations": [
+   "Application Isolation and Sandboxing",
+   "Exploit Protection",
+   "Filter Network Traffic",
+   "Limit Access to Resource Over Network",
+   "Network Segmentation",
+   "Privileged Account Management",
+   "Update Software",
+   "Vulnerability Scanning"
+  ],
+  "detection": [
+   {
+    "strategy": "Exploit Public-Facing Application – multi-signal correlation (request → error → post-exploit process/egress)",
+    "strategy_id": "DET0080",
+    "analytics": [
+     {
+      "name": "Analytic 0219",
+      "description": "Adversary sends crafted HTTP/S (or other service) input to an Internet-facing app (IIS/ASP.NET, API, device portal). Chain: (1) abnormal request patterns to public endpoint → (2) elevated 4xx/5xx or unusual methods/paths → (3) server process (w3wp.exe/other service) spawns shell/LOLbins or loads non-standard modules → (4) optional outbound callback from the host/container.",
+      "logs": [
+       "ApplicationLog:IIS",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0220",
+      "description": "Adversary exploits Apache/Nginx/app servers. Chain: (1) suspicious requests in access logs → (2) spike of 5xx or WAF blocks → (3) web server or interpreter (apache2/nginx/php-fpm/node/python) spawns /bin/sh, curl, wget, socat, or writes webshell → (4) outbound callback.",
+      "logs": [
+       "ApplicationLog:WebServer",
+       "auditd:SYSCALL",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 0221",
+      "description": "Adversary targets macOS-hosted public services (e.g., nginx, node). Chain: suspicious inbound request → service crash/5xx → service spawns shell or writes file → new outbound connection.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog",
+       "NSM:Flow"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1190"
+ },
+ {
+  "id": "T1199",
+  "name": "Trusted Relationship",
+  "tactics": [
+   "Initial Access"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may breach or otherwise leverage organizations who have access to intended victims. Access through trusted third party relationship abuses an existing connection that may not be protected or receives less scrutiny than standard mechanisms of gaining access to a network.\n\nOrganizations often grant elevated access to second or third-party external providers in order to allow them to manage internal systems as well as cloud-based environments. Some examples of these relationships include IT services contractors, managed security providers, infrastructure contractors (e.g. HVAC, elevators, physical security). The third-party provider's access may be intended to be limited to the infrastructure being maintained, but may exist on the same network as the rest of the enterprise. As such, [Valid Accounts](https://attack.mitre.org/techniques/T1078) used by the other party for access to internal network systems may be compromised and used.(Citation: CISA IT Service Providers)\n\nIn Office 365 environments, organizations may grant Microsoft partners or resellers delegated administrator permissions. By compromising a partner or reseller account, an adversary may be able to leverage existing delegated administrator relationships or send new delegated administrator offers to clients in order to gain administrative control over the victim tenant.(Citation: Office 365 Delegated Admini",
+  "mitigations": [
+   "Multi-factor Authentication",
+   "Network Segmentation",
+   "User Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Detect abuse of Trusted Relationships (third-party and delegated admin access)",
+    "strategy_id": "DET0488",
+    "analytics": [
+     {
+      "name": "Analytic 1344",
+      "description": "Behavioral chain: (1) a login from a third-party account or untrusted source network establishes an interactive/remote session; (2) the session acquires elevated privileges or accesses sensitive resources atypical for that account; (3) subsequent lateral movement or data access occurs from the same session/device. Correlate Windows logon events, token elevation/privileged use, and resource access with third-party context.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security"
+      ]
+     },
+     {
+      "name": "Analytic 1345",
+      "description": "Behavioral chain: (1) sshd or federated SSO logins from third-party networks or identities; (2) rapid sudo/su privilege elevation; (3) access to sensitive paths or east-west SSH. Correlate auth logs, process execution, and network flows.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:syslog",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1346",
+      "description": "Behavioral chain: (1) third-party interactive login or mobileconfig-based device enrollment; (2) privilege use or admin group change; (3) lateral movement mounts/ssh. Correlate unified logs and network telemetry.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog",
+       "NSM:Flow"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1199"
+ },
+ {
+  "id": "T1497",
+  "name": "Virtualization/Sandbox Evasion",
+  "tactics": [
+   "Discovery",
+   "Stealth"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may employ various means to detect and avoid virtualization and analysis environments. This may include changing behaviors based on the results of checks for the presence of artifacts indicative of a virtual machine environment (VME) or sandbox. If the adversary detects a VME, they may alter their malware to disengage from the victim or conceal the core functions of the implant. They may also search for VME artifacts before dropping secondary or additional payloads. Adversaries may use the information learned from [Virtualization/Sandbox Evasion](https://attack.mitre.org/techniques/T1497) during automated discovery to shape follow-on behaviors.(Citation: Deloitte Environment Awareness)\n\nAdversaries may use several methods to accomplish [Virtualization/Sandbox Evasion](https://attack.mitre.org/techniques/T1497) such as checking for security monitoring tools (e.g., Sysinternals, Wireshark, etc.) or other system artifacts associated with analysis or virtualization. Adversaries may also check for legitimate user activity to help determine if it is in an analysis environment. Additional methods include use of sleep timers or loops within malware code to avoid operating within a temporary sandbox.(Citation: Unit 42 Pirpi July 2015)",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for T1497 Virtualization/Sandbox Evasion",
+    "strategy_id": "DET0046",
+    "analytics": [
+     {
+      "name": "Analytic 0127",
+      "description": "Execution of discovery commands or API calls for virtualization artifacts (e.g., registry keys, device drivers, services), sleep/skipped execution behavior, or sandbox evasion DLLs before payload deployment.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0128",
+      "description": "Execution of commands to enumerate virtualization-related files or processes (e.g., '/sys/class/dmi/id/product_name', dmesg, lscpu, lspci), or querying hypervisor interfaces prior to malware execution.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 0129",
+      "description": "Execution of scripts or binaries that check for virtualization indicators (e.g., system_profiler, ioreg -l, kextstat), combined with delay functions or anomalous launchd activity.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1497"
+ },
+ {
+  "id": "T1552",
+  "name": "Unsecured Credentials",
+  "tactics": [
+   "Credential Access"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may search compromised systems to find and obtain insecurely stored credentials. These credentials can be stored and/or misplaced in many locations on a system, including plaintext files (e.g. [Shell History](https://attack.mitre.org/techniques/T1552/003)), operating system or application-specific repositories (e.g. [Credentials in Registry](https://attack.mitre.org/techniques/T1552/002)),  or other specialized files/artifacts (e.g. [Private Keys](https://attack.mitre.org/techniques/T1552/004)).(Citation: Brining MimiKatz to Unix)",
+  "mitigations": [
+   "Active Directory Configuration",
+   "Audit",
+   "Encrypt Sensitive Information",
+   "Filter Network Traffic",
+   "Limit Access to Resource Over Network",
+   "Operating System Configuration",
+   "Password Policies",
+   "Privileged Account Management"
+  ],
+  "detection": [
+   {
+    "strategy": "Detect Access or Search for Unsecured Credentials Across Platforms",
+    "strategy_id": "DET0412",
+    "analytics": [
+     {
+      "name": "Analytic 1153",
+      "description": "Unusual access to bash history, registry credentials paths, or private key files by unauthorized or scripting tools, with correlated file and process activity.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1154",
+      "description": "Reading of sensitive files like .bash_history, /etc/shadow, or private key directories by unauthorized users or unusual processes.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:SYSCALL"
+      ]
+     },
+     {
+      "name": "Analytic 1155",
+      "description": "Unusual access to ~/Library/Keychains, ~/.bash_history, or Terminal command history by unauthorized processes or users.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1552"
+ },
+ {
+  "id": "T1555",
+  "name": "Credentials from Password Stores",
+  "tactics": [
+   "Credential Access"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may search for common password storage locations to obtain user credentials.(Citation: F-Secure The Dukes) Passwords are stored in several places on a system, depending on the operating system or application holding the credentials. There are also specific applications and services that store passwords to make them easier for users to manage and maintain, such as password managers and cloud secrets vaults. Once credentials are obtained, they can be used to perform lateral movement and access restricted information.",
+  "mitigations": [
+   "Password Policies",
+   "Privileged Account Management",
+   "Update Software"
+  ],
+  "detection": [
+   {
+    "strategy": "Detect Credentials Access from Password Stores",
+    "strategy_id": "DET0430",
+    "analytics": [
+     {
+      "name": "Analytic 1198",
+      "description": "Monitors suspicious access to password stores such as LSASS, DPAPI, Windows Credential Manager, or browser credential databases. Detects anomalous process-to-process access (e.g., Mimikatz accessing LSASS) and correlation of credential store file reads with execution of non-standard processes.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1199",
+      "description": "Detects access to known password store files (e.g., /etc/shadow, GNOME Keyring, KWallet, browser credential databases). Monitors anomalous process read attempts and suspicious API calls that attempt to extract stored credentials.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:EXECVE"
+      ]
+     },
+     {
+      "name": "Analytic 1200",
+      "description": "Monitors Keychain database access and suspicious invocations of security and osascript utilities. Correlates process execution with attempts to dump or unlock Keychain data.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1555"
+ },
+ {
+  "id": "T1560",
+  "name": "Archive Collected Data",
+  "tactics": [
+   "Collection"
+  ],
+  "is_subtechnique": false,
+  "description": "An adversary may compress and/or encrypt data that is collected prior to exfiltration. Compressing the data can help to obfuscate the collected data and minimize the amount of data sent over the network.(Citation: DOJ GRU Indictment Jul 2018) Encryption can be used to hide information that is being exfiltrated from detection or make exfiltration less conspicuous upon inspection by a defender.\n\nBoth compression and encryption are done prior to exfiltration, and can be performed using a utility, 3rd party library, or custom method.",
+  "mitigations": [
+   "Audit"
+  ],
+  "detection": [
+   {
+    "strategy": "Detect Archiving and Encryption of Collected Data (T1560)",
+    "strategy_id": "DET0526",
+    "analytics": [
+     {
+      "name": "Analytic 1458",
+      "description": "Detects adversarial archiving of files prior to exfiltration by correlating execution of compression/encryption utilities (e.g., makecab.exe, rar.exe, 7z.exe, powershell Compress-Archive) with subsequent creation of large compressed or encrypted files. Identifies abnormal process lineage involving crypt32.dll usage, command-line arguments invoking compression switches, and file write operations to temporary or staging directories.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1459",
+      "description": "Detects adversarial archiving activity through invocation of utilities like tar, gzip, bzip2, or openssl used in non-administrative or unusual contexts. Correlates command execution patterns with file creation of compressed/encrypted outputs in staging directories (e.g., /tmp, /var/tmp).",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:FILE"
+      ]
+     },
+     {
+      "name": "Analytic 1460",
+      "description": "Detects use of macOS-native archiving or encryption tools (zip, ditto, hdiutil) for staging collected data. Identifies unexpected invocation of archive utilities by Office apps, browsers, or background daemons. Correlates file creation of .zip/.dmg containers with process lineage anomalies.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1560"
+ },
+ {
+  "id": "T1560.001",
+  "name": "Archive via Utility",
+  "tactics": [
+   "Collection"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may use utilities to compress and/or encrypt collected data prior to exfiltration. Many utilities include functionalities to compress, encrypt, or otherwise package data into a format that is easier/more secure to transport.\n\nAdversaries may abuse various utilities to compress or encrypt data before exfiltration. Some third party utilities may be preinstalled, such as <code>tar</code> on Linux and macOS or <code>zip</code> on Windows systems. \n\nOn Windows, <code>diantz</code> or <code> makecab</code> may be used to package collected files into a cabinet (.cab) file. <code>diantz</code> may also be used to download and compress files from remote locations (i.e. [Remote Data Staging](https://attack.mitre.org/techniques/T1074/002)).(Citation: diantz.exe_lolbas) <code>xcopy</code> on Windows can copy files and directories with a variety of options. Additionally, adversaries may use [certutil](https://attack.mitre.org/software/S0160) to Base64 encode collected data before exfiltration. \n\nAdversaries may use also third party utilities, such as 7-Zip, WinRAR, and WinZip, to perform similar activities.(Citation: 7zip Homepage)(Citation: WinRAR Homepage)(Citation: WinZip Homepage)",
+  "mitigations": [
+   "Audit"
+  ],
+  "detection": [
+   {
+    "strategy": "Detect Archiving via Utility (T1560.001)",
+    "strategy_id": "DET0298",
+    "analytics": [
+     {
+      "name": "Analytic 0831",
+      "description": "Detects adversarial archiving using built-in or third-party utilities (makecab, diantz, xcopy, certutil, 7z, WinRAR, WinZip). Correlates suspicious process creation events with command-line arguments for compression/encoding, followed by creation of archive files (.cab, .zip, .7z, .rar). Identifies anomalous loading of crypt32.dll for encryption operations or execution of diantz.exe to compress remotely staged files.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0832",
+      "description": "Detects execution of archiving utilities (tar, gzip, bzip2, xz, zip, openssl) followed by suspicious archive file creation. Correlates archive creation in temporary or staging directories with execution of commands involving compression or encryption options.",
+      "logs": [
+       "auditd:SYSCALL",
+       "auditd:FILE"
+      ]
+     },
+     {
+      "name": "Analytic 0833",
+      "description": "Detects invocation of macOS-native archiving utilities (zip, ditto, hdiutil) or openssl used for encryption. Correlates execution with archive or encrypted file creation (.zip, .dmg, .tar.gz) in user or temporary directories. Identifies anomalous use of archiving commands by Office applications or daemons.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1560/001"
+ },
+ {
+  "id": "T1564",
+  "name": "Hide Artifacts",
+  "tactics": [
+   "Stealth"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may attempt to hide artifacts associated with their behaviors to evade detection. Operating systems may have features to hide various artifacts, such as important system files and administrative task execution, to avoid disrupting user work environments and prevent users from changing files or features on the system. Adversaries may abuse these features to hide artifacts such as files, directories, user accounts, or other system activity to evade detection.(Citation: Sofacy Komplex Trojan)(Citation: Cybereason OSX Pirrit)(Citation: MalwareBytes ADS July 2015)\n\nAdversaries may also attempt to hide artifacts associated with malicious behavior by creating computing regions that are isolated from common security instrumentation, such as through the use of virtualization technology.(Citation: Sophos Ragnar May 2020)",
+  "mitigations": [
+   "Antivirus/Antimalware",
+   "Application Developer Guidance",
+   "Audit",
+   "Limit Software Installation"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Hidden Artifacts Across Platforms",
+    "strategy_id": "DET0502",
+    "analytics": [
+     {
+      "name": "Analytic 1384",
+      "description": "Abuse of file/registry attributes to hide malicious files, directories, or services. Defender view: detection of attrib.exe setting hidden/system flags, creation of Alternate Data Streams, or registry keys altering file visibility.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1385",
+      "description": "Hidden file creation using leading '.' or file attribute changes with chattr (immutable/hidden flags). Defender view: detect execution of chattr, lsattr anomalies, and unusual hidden files appearing in system directories.",
+      "logs": [
+       "auditd:EXECVE",
+       "auditd:FILE"
+      ]
+     },
+     {
+      "name": "Analytic 1386",
+      "description": "Hidden files via 'chflags hidden' or Apple-specific attributes, LaunchAgents/LaunchDaemons placed in non-standard hidden directories. Defender view: detect command execution modifying file flags and unusual plist creation in hidden paths.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1564"
+ },
+ {
+  "id": "T1564.001",
+  "name": "Hidden Files and Directories",
+  "tactics": [
+   "Stealth"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may set files and directories to be hidden to evade detection mechanisms. To prevent normal users from accidentally changing special files on a system, most operating systems have the concept of a ‘hidden’ file. These files don’t show up when a user browses the file system with a GUI or when using normal commands on the command line. Users must explicitly ask to show the hidden files either via a series of Graphical User Interface (GUI) prompts or with command line switches (<code>dir /a</code> for Windows and <code>ls –a</code> for Linux and macOS).\n\nOn Linux and Mac, users can mark specific files as hidden simply by putting a “.” as the first character in the file or folder name.(Citation: Sofacy Komplex Trojan)(Citation: Antiquated Mac Malware) Files and folders that start with a period, ‘.’, are by default hidden from being viewed in the Finder application and standard command-line utilities like “ls”. Users must specifically change settings to have these files viewable.\n\nFiles on macOS can also be marked with the UF_HIDDEN flag which prevents them from being seen in Finder.app, but still allows them to be seen in Terminal.app.(Citation: WireLurker) On Windows, users can mark specific files as hidden by using the attrib.exe binary. Many applications create these hidden files and folders to store information so that it doesn’t clutter up the user’s workspace. For",
+  "mitigations": [],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Hidden Files and Directories",
+    "strategy_id": "DET0032",
+    "analytics": [
+     {
+      "name": "Analytic 0091",
+      "description": "Suspicious use of attrib.exe or PowerShell commands to set hidden attributes on files/directories. Defender view: processes modifying file attributes to 'hidden' or creating files with ADS (alternate data streams).",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0092",
+      "description": "Creation of files or directories with a leading '.' in privileged directories (/etc, /var, /usr/bin). Defender view: monitoring auditd logs for file creations where name begins with '.' and correlated with unusual user/process context.",
+      "logs": [
+       "auditd:FILE",
+       "auditd:EXECVE"
+      ]
+     },
+     {
+      "name": "Analytic 0093",
+      "description": "Use of chflags hidden or SetFile -a V commands to hide files, or creation of hidden files with leading '.'. Defender view: monitoring process execution and file metadata changes setting UF_HIDDEN attribute.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1564/001"
+ },
+ {
+  "id": "T1567",
+  "name": "Exfiltration Over Web Service",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may use an existing, legitimate external Web service to exfiltrate data rather than their primary command and control channel. Popular Web services acting as an exfiltration mechanism may give a significant amount of cover due to the likelihood that hosts within a network are already communicating with them prior to compromise. Firewall rules may also already exist to permit traffic to these services.\n\nWeb service providers also commonly use SSL/TLS encryption, giving adversaries an added level of protection.",
+  "mitigations": [
+   "Data Loss Prevention",
+   "Restrict Web-Based Content"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Exfiltration Over Web Service",
+    "strategy_id": "DET0548",
+    "analytics": [
+     {
+      "name": "Analytic 1511",
+      "description": "Processes that normally do not initiate network communications suddenly making outbound HTTPS connections with high outbound-to-inbound data ratios. Defender view: correlation between process creation logs (e.g., Word, Excel, PowerShell) and subsequent anomalous network traffic volumes toward common web services (Dropbox, Google Drive, OneDrive).",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1512",
+      "description": "Processes (tar, curl, python scripts) accessing large file sets and initiating outbound HTTPS POST requests with payload sizes inconsistent with baseline activity. Defender perspective: detect abnormal sequence of file archival followed by encrypted uploads to external web services.",
+      "logs": [
+       "auditd:EXECVE",
+       "auditd:SYSCALL",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1513",
+      "description": "Office apps or scripts writing files followed by xattr manipulation (to evade quarantine) and subsequent HTTPS uploads. Defender perspective: anomalous file modification + outbound TLS traffic originating from non-networking apps (Word, Excel, Preview).",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1567"
+ },
+ {
+  "id": "T1567.002",
+  "name": "Exfiltration to Cloud Storage",
+  "tactics": [
+   "Exfiltration"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may exfiltrate data to a cloud storage service rather than over their primary command and control channel. Cloud storage services allow for the storage, edit, and retrieval of data from a remote cloud storage server over the Internet.\n\nExamples of cloud storage services include Dropbox and Google Docs. Exfiltration to these cloud storage services can provide a significant amount of cover to the adversary if hosts within the network are already communicating with the service.",
+  "mitigations": [
+   "Restrict Web-Based Content"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Exfiltration to Cloud Storage",
+    "strategy_id": "DET0570",
+    "analytics": [
+     {
+      "name": "Analytic 1571",
+      "description": "Unusual processes (e.g., powershell.exe, excel.exe) accessing large local files and subsequently initiating HTTPS POST requests to domains associated with cloud storage services (e.g., dropbox.com, drive.google.com, box.com). Defender perspective: correlation between file reads in sensitive directories and high outbound traffic volume to known storage APIs.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1572",
+      "description": "Processes such as curl, wget, rclone, or custom scripts executing uploads to cloud storage endpoints. Defender perspective: detect chained events where tar/gzip is executed to compress files followed by HTTPS PUT/POST requests to known storage services.",
+      "logs": [
+       "auditd:EXECVE",
+       "auditd:SYSCALL",
+       "NSM:Flow"
+      ]
+     },
+     {
+      "name": "Analytic 1573",
+      "description": "Applications or scripts invoking cloud storage APIs (Dropbox sync, iCloud, Google Drive client) in unexpected contexts. Defender perspective: detect sensitive file reads by non-standard applications followed by unusual encrypted uploads to external cloud storage domains.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1567/002"
+ },
+ {
+  "id": "T1568",
+  "name": "Dynamic Resolution",
+  "tactics": [
+   "Command and Control"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may dynamically establish connections to command and control infrastructure to evade common detections and remediations. This may be achieved by using malware that shares a common algorithm with the infrastructure the adversary uses to receive the malware's communications. These calculations can be used to dynamically adjust parameters such as the domain name, IP address, or port number the malware uses for command and control.\n\nAdversaries may use dynamic resolution for the purpose of [Fallback Channels](https://attack.mitre.org/techniques/T1008). When contact is lost with the primary command and control server malware may employ dynamic resolution as a means to reestablishing command and control.(Citation: Talos CCleanup 2017)(Citation: FireEye POSHSPY April 2017)(Citation: ESET Sednit 2017 Activity)",
+  "mitigations": [
+   "Network Intrusion Prevention",
+   "Restrict Web-Based Content"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Dynamic Resolution across OS Platforms",
+    "strategy_id": "DET0039",
+    "analytics": [
+     {
+      "name": "Analytic 0109",
+      "description": "Correlate high-frequency or anomalous DNS query activity with processes that do not normally generate network requests (e.g., Office apps, system utilities). Detect pseudo-random or high-entropy domain lookups indicative of domain generation algorithms (DGAs).",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0110",
+      "description": "Monitor /var/log/audit/audit.log and DNS resolver logs for repeated failed lookups or connections to high-entropy domain names. Correlate suspicious DNS queries with process lineage (e.g., Python, bash, or unusual system daemons).",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:syslog"
+      ]
+     },
+     {
+      "name": "Analytic 0111",
+      "description": "Inspect unified logs for anomalous DNS resolutions triggered by non-network applications. Flag repeated connections to newly registered or algorithmically generated domains. Correlate with endpoint process telemetry.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1568"
+ },
+ {
+  "id": "T1571",
+  "name": "Non-Standard Port",
+  "tactics": [
+   "Command and Control"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may communicate using a protocol and port pairing that are typically not associated (for example, HTTPS over port 8088(Citation: Symantec Elfin Mar 2019) or port 587(Citation: Fortinet Agent Tesla April 2018) as opposed to the traditional port 443). Adversaries may make changes to the standard port used by a protocol to bypass filtering or muddle analysis/parsing of network data.\n\nAdversaries may also make changes to victim systems to abuse non-standard ports. For example, Registry keys and other configuration settings can be used to modify protocol and port pairings.(Citation: change_rdp_port_conti)",
+  "mitigations": [
+   "Network Intrusion Prevention",
+   "Network Segmentation"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Non-Standard Ports",
+    "strategy_id": "DET0227",
+    "analytics": [
+     {
+      "name": "Analytic 0633",
+      "description": "Processes initiating outbound connections on uncommon ports or using protocols inconsistent with the assigned port. Correlating process creation with subsequent network connections reveals anomalies such as svchost.exe or Office applications using high, atypical ports.",
+      "logs": [
+       "WinEventLog:Security",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 0634",
+      "description": "Unusual daemons or user processes binding/listening on ports outside of standard ranges, or initiating client connections using mismatched protocol/port pairings.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:syslog",
+       "linux:osquery"
+      ]
+     },
+     {
+      "name": "Analytic 0635",
+      "description": "Applications making outbound connections on non-standard ports or launchd services bound to ports inconsistent with system baselines.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1571"
+ },
+ {
+  "id": "T1572",
+  "name": "Protocol Tunneling",
+  "tactics": [
+   "Command and Control"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may tunnel network communications to and from a victim system within a separate protocol to avoid detection/network filtering and/or enable access to otherwise unreachable systems. Tunneling involves explicitly encapsulating a protocol within another. This behavior may conceal malicious traffic by blending in with existing traffic and/or provide an outer layer of encryption (similar to a VPN). Tunneling could also enable routing of network packets that would otherwise not reach their intended destination, such as SMB, RDP, or other traffic that would be filtered by network appliances or not routed over the Internet. \n\nThere are various means to encapsulate a protocol within another protocol. For example, adversaries may perform SSH tunneling (also known as SSH port forwarding), which involves forwarding arbitrary data over an encrypted SSH tunnel.(Citation: SSH Tunneling)(Citation: Sygnia Abyss Locker 2025) \n\n[Protocol Tunneling](https://attack.mitre.org/techniques/T1572) may also be abused by adversaries during [Dynamic Resolution](https://attack.mitre.org/techniques/T1568). Known as DNS over HTTPS (DoH), queries to resolve C2 infrastructure may be encapsulated within encrypted HTTPS packets.(Citation: BleepingComp Godlua JUL19) \n\nAdversaries may also leverage [Protocol Tunneling](https://attack.mitre.org/techniques/T1572) in conjunction with [Proxy](https://attack",
+  "mitigations": [
+   "Filter Network Traffic",
+   "Network Intrusion Prevention"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection Strategy for Protocol Tunneling accross OS platforms.",
+    "strategy_id": "DET0538",
+    "analytics": [
+     {
+      "name": "Analytic 1483",
+      "description": "Processes such as plink.exe, ssh.exe, or netsh.exe establishing outbound network connections where traffic patterns show encapsulated protocols (e.g., RDP over SSH). Defender observations include anomalous process-to-network relationships, large asymmetric data flows, and port usage mismatches.",
+      "logs": [
+       "WinEventLog:Sysmon",
+       "WinEventLog:Sysmon"
+      ]
+     },
+     {
+      "name": "Analytic 1484",
+      "description": "sshd, socat, or custom binaries initiating port forwarding or encapsulating traffic (e.g., RDP, SMB) through SSH or HTTP. Defender sees abnormal connect/bind syscalls, encrypted traffic on ports typically used for non-encrypted services, and outlier traffic volume patterns.",
+      "logs": [
+       "auditd:SYSCALL",
+       "linux:syslog",
+       "linux:osquery"
+      ]
+     },
+     {
+      "name": "Analytic 1485",
+      "description": "launchd or user-invoked processes (ssh, socat) encapsulating traffic via SSH tunnels, VPN-style tooling, or DNS-over-HTTPS clients. Defender sees outbound TLS traffic with embedded DNS or RDP payloads.",
+      "logs": [
+       "macos:unifiedlog",
+       "macos:unifiedlog"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1572"
+ },
+ {
+  "id": "T1595",
+  "name": "Active Scanning",
+  "tactics": [
+   "Reconnaissance"
+  ],
+  "is_subtechnique": false,
+  "description": "Adversaries may execute active reconnaissance scans to gather information that can be used during targeting. Active scans are those where the adversary probes victim infrastructure via network traffic, as opposed to other forms of reconnaissance that do not involve direct interaction.\n\nAdversaries may perform different forms of active scanning depending on what information they seek to gather. These scans can also be performed in various ways, including using native features of network protocols such as ICMP.(Citation: Botnet Scan)(Citation: OWASP Fingerprinting) Information from these scans may reveal opportunities for other forms of reconnaissance (ex: [Search Open Websites/Domains](https://attack.mitre.org/techniques/T1593) or [Search Open Technical Databases](https://attack.mitre.org/techniques/T1596)), establishing operational resources (ex: [Develop Capabilities](https://attack.mitre.org/techniques/T1587) or [Obtain Capabilities](https://attack.mitre.org/techniques/T1588)), and/or initial access (ex: [External Remote Services](https://attack.mitre.org/techniques/T1133) or [Exploit Public-Facing Application](https://attack.mitre.org/techniques/T1190)).",
+  "mitigations": [
+   "Pre-compromise"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Active Scanning",
+    "strategy_id": "DET0830",
+    "analytics": [
+     {
+      "name": "Analytic 1962",
+      "description": "Monitor network data for uncommon data flows. Processes utilizing the network that do not normally have network communication or have never been seen before are suspicious.\nMonitor and analyze traffic patterns and packet inspection associated to protocol(s) that do not follow the expected protocol standards and traffic flows (e.g extraneous packets that do not belong to established flows, gratuitous or anomalous traffic patterns, anomalous syntax, or structure). Consider correlation with process monitoring and command line to detect anomalous processes execution and command line arguments associated to traffic patterns (e.g. monitor anomalies in use of files that do not normally initiate connections for respective protocol(s)).",
+      "logs": [
+       "Network Traffic",
+       "Network Traffic"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1595"
+ },
+ {
+  "id": "T1595.001",
+  "name": "Scanning IP Blocks",
+  "tactics": [
+   "Reconnaissance"
+  ],
+  "is_subtechnique": true,
+  "description": "Adversaries may scan victim IP blocks to gather information that can be used during targeting. Public IP addresses may be allocated to organizations by block, or a range of sequential addresses.\n\nAdversaries may scan IP blocks in order to [Gather Victim Network Information](https://attack.mitre.org/techniques/T1590), such as which IP addresses are actively in use as well as more detailed information about hosts assigned these addresses. Scans may range from simple pings (ICMP requests and responses) to more nuanced scans that may reveal host software/versions via server banners or other network artifacts.(Citation: Botnet Scan) Information from these scans may reveal opportunities for other forms of reconnaissance (ex: [Search Open Websites/Domains](https://attack.mitre.org/techniques/T1593) or [Search Open Technical Databases](https://attack.mitre.org/techniques/T1596)), establishing operational resources (ex: [Develop Capabilities](https://attack.mitre.org/techniques/T1587) or [Obtain Capabilities](https://attack.mitre.org/techniques/T1588)), and/or initial access (ex: [External Remote Services](https://attack.mitre.org/techniques/T1133)).",
+  "mitigations": [
+   "Pre-compromise"
+  ],
+  "detection": [
+   {
+    "strategy": "Detection of Scanning IP Blocks",
+    "strategy_id": "DET0817",
+    "analytics": [
+     {
+      "name": "Analytic 1949",
+      "description": "Monitoring the content of network traffic can help detect patterns associated with active scanning activities. This can include identifying repeated connection attempts, unusual scanning behaviors, or probing activity targeting multiple IP addresses across a network.\nMonitor network data for uncommon data flows. Processes utilizing the network that do not normally have network communication or have never been seen before are suspicious.",
+      "logs": [
+       "Network Traffic",
+       "Network Traffic"
+      ]
+     }
+    ]
+   }
+  ],
+  "url": "https://attack.mitre.org/techniques/T1595/001"
+ }
+]

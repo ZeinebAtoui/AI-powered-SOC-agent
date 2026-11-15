@@ -1,0 +1,33 @@
+{
+  "fpr": 0.24556062912227294,
+  "recall": 0.5670995670995671,
+  "precision": 0.10394075641364718,
+  "median_score_normal": 0.15031400322914124,
+  "median_score_attack": 0.8751280307769775,
+  "n_flows": 14490,
+  "n_attack_flows": 693,
+  "per_attack": [
+    {
+      "attack": "A2_scan",
+      "n": 269,
+      "recall": 0.022304832713754646,
+      "median_rank": 13942,
+      "in_top10pct": 5
+    },
+    {
+      "attack": "A3_exfil",
+      "n": 400,
+      "recall": 0.96,
+      "median_rank": 1204,
+      "in_top10pct": 377
+    },
+    {
+      "attack": "A4_lowslow",
+      "n": 24,
+      "recall": 0.125,
+      "median_rank": 8523,
+      "in_top10pct": 0
+    }
+  ],
+  "unsw_test_precision": 0.9634342547901126
+}

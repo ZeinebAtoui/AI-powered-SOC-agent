@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard SOC — agent hybride</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --border:#30363d;
+    --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff;
+    --ok:#3fb950; --warn:#d29922; --bad:#f85149; --purple:#bc8cff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  header{
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:16px 24px; background:var(--panel); border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:10;
+  }
+  h1{font-size:17px; margin:0; font-weight:600; letter-spacing:.2px}
+  h1 span{color:var(--muted); font-weight:400; font-size:13px; margin-left:8px}
+  .spacer{flex:1}
+  main{padding:24px; max-width:1500px; margin:0 auto}
+
+  .badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px;
+    padding:4px 10px; border-radius:20px; background:var(--panel2);
+    border:1px solid var(--border); color:var(--muted);
+  }
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--muted)}
+  .dot.ok{background:var(--ok); box-shadow:0 0 6px var(--ok)}
+  .dot.bad{background:var(--bad); box-shadow:0 0 6px var(--bad)}
+
+  button{
+    background:var(--accent); color:#04121f; border:0; border-radius:6px;
+    padding:8px 16px; font-weight:600; cursor:pointer; font-size:13px;
+  }
+  button:hover{filter:brightness(1.1)}
+  button:disabled{opacity:.5; cursor:wait}
+  button.ghost{background:transparent; color:var(--muted); border:1px solid var(--border)}
+
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:24px}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px}
+  .card .v{font-size:28px; font-weight:700; line-height:1.1}
+  .card .k{font-size:12px; color:var(--muted); margin-top:6px}
+  .card.haute .v{color:var(--bad)}
+  .card.normale .v{color:var(--warn)}
+  .card.info .v{color:var(--accent)}
+
+  .panel{background:var(--panel); border:1px solid var(--border); border-radius:10px; margin-bottom:24px; overflow:hidden}
+  .panel > h2{
+    font-size:13px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted);
+    margin:0; padding:14px 18px; border-bottom:1px solid var(--border);
+    background:var(--panel2); display:flex; align-items:center; gap:10px;
+  }
+  .panel > h2 .spacer{flex:1}
+  .body{padding:18px}
+
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th{
+    text-align:left; padding:10px 12px; color:var(--muted); font-weight:600;
+    font-size:11px; text-transform:uppercase; letter-spacing:.5px;
+    border-bottom:1px solid var(--border); background:var(--panel2);
+    position:sticky; top:0;
+  }
+  td{padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#1a2130}
+  .rank{color:var(--muted); font-variant-numeric:tabular-nums; width:38px}
+  .ip{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--accent)}
+  .num{font-variant-numeric:tabular-nums; text-align:right}
+
+  .pill{
+    display:inline-block; padding:2px 9px; border-radius:12px;
+    font-size:11px; font-weight:700; letter-spacing:.3px;
+  }
+  .pill.haute{background:rgba(248,81,73,.16); color:#ff7b72; border:1px solid rgba(248,81,73,.4)}
+  .pill.normale{background:rgba(210,153,34,.16); color:#e3b341; border:1px solid rgba(210,153,34,.4)}
+  .pill.family{background:rgba(188,140,255,.14); color:var(--purple); border:1px solid rgba(188,140,255,.35)}
+  .pill.tech{background:rgba(63,185,80,.14); color:#56d364; border:1px solid rgba(63,185,80,.35)}
+  .pill.none{background:var(--panel2); color:var(--muted); border:1px solid var(--border)}
+
+  .feats{display:flex; flex-wrap:wrap; gap:5px; max-width:420px}
+  .feat{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px;
+    background:var(--panel2); border:1px solid var(--border);
+    padding:2px 7px; border-radius:4px; color:#a5b0bd; white-space:nowrap;
+  }
+  .feat b{color:#e6edf3; font-weight:600}
+
+  .bar{height:6px; background:var(--panel2); border-radius:3px; overflow:hidden; min-width:70px}
+  .bar > i{display:block; height:100%; background:linear-gradient(90deg,#1f6feb,#58a6ff)}
+
+  .kv{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px}
+  .kv > div{background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:12px 14px}
+  .kv .k{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px}
+  .kv .v{font-size:14px; margin-top:5px; font-family:ui-monospace,Menlo,monospace}
+
+  pre.report{
+    white-space:pre-wrap; font-family:ui-monospace,Menlo,monospace; font-size:13px;
+    margin:0; color:#c9d1d9; max-height:70vh; overflow:auto;
+  }
+  .note{color:var(--muted); font-size:12px; margin-top:10px; font-style:italic}
+  .empty{padding:34px; text-align:center; color:var(--muted)}
+  .empty b{color:var(--text)}
+
+  /* --- interrogation de l'agent --- */
+  textarea{
+    width:100%; background:var(--panel2); border:1px solid var(--border);
+    color:var(--text); border-radius:8px; padding:11px 13px;
+    font:13px/1.5 inherit; resize:vertical; min-height:58px;
+  }
+  textarea::placeholder{color:#6e7681}
+  textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(88,166,255,.15)}
+  .askrow{display:flex; gap:10px; align-items:flex-start}
+  .log{
+    margin-top:14px; max-height:320px; overflow:auto; background:#0a0e14;
+    border:1px solid var(--border); border-radius:8px; padding:10px 14px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px;
+  }
+  .log .row{padding:4px 0; border-bottom:1px dashed #1b212b; word-break:break-word}
+  .log .row:last-child{border-bottom:0}
+  .log .tool{color:#79c0ff; font-weight:600}
+  .log .args{color:#8b949e}
+  .log .result{color:#a5b0bd; white-space:pre-wrap}
+  .answer{
+    margin-top:14px; background:var(--panel2); border:1px solid var(--border);
+    border-left:3px solid var(--accent); border-radius:8px; padding:16px 18px;
+    white-space:pre-wrap; font-size:13px; max-height:65vh; overflow:auto; color:#c9d1d9;
+  }
+  .answer.err{border-left-color:var(--bad); color:#ff7b72}
+
+  .spin{display:inline-block; width:12px; height:12px; border:2px solid rgba(255,255,255,.3);
+        border-top-color:#fff; border-radius:50%; animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛡️ Dashboard SOC <span>Isolation Forest · XGBoost · RAG ATT&amp;CK</span></h1>
+  <div class="spacer"></div>
+  <div id="badges" class="badge"><span class="dot"></span> chargement…</div>
+  <button id="btnRefresh" onclick="refresh()">⟳ Recalculer</button>
+  <button class="ghost" onclick="loadReport()">📄 Rapport</button>
+</header>
+
+<main>
+
+  <!-- Interrogation de l'agent -->
+  <div class="panel">
+    <h2>
+      🔬 Interroger l'agent
+      <span class="spacer"></span>
+      <span id="jobState" class="pill none">inactif</span>
+    </h2>
+    <div class="body">
+      <div class="askrow">
+        <textarea id="question" rows="2"
+          placeholder="Ex. Analyse les logs du workspace et rédige le rapport d'incident. Identifie toutes les attaques, y compris les subtilles."></textarea>
+        <button id="btnAsk" onclick="ask()">Envoyer</button>
+      </div>
+      <div class="note">Mode SOC. Une enquête dure 15 à 45 min — chaque tour de LLM
+        coûte 30 à 60 s. Le journal ci-dessous se remplit au fil de l'eau.</div>
+
+      <div id="jobProgress" style="display:none">
+        <div class="note" id="jobMeta" style="margin-top:12px"></div>
+        <div class="log" id="jobLog"></div>
+        <div id="jobAnswer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- État des briques -->
+  <div class="panel">
+    <h2>État du pipeline</h2>
+    <div class="body"><div class="kv" id="statusGrid">…</div></div>
+  </div>
+
+  <!-- Résumé -->
+  <div class="cards" id="cards"></div>
+
+  <!-- Alertes -->
+  <div class="panel">
+    <h2>
+      Alertes priorisées
+      <span class="spacer"></span>
+      <span id="evalMode" class="pill none">…</span>
+    </h2>
+    <div class="body" style="padding:0; overflow-x:auto">
+      <div id="alertsWrap"><div class="empty">Chargement…</div></div>
+    </div>
+  </div>
+
+  <!-- Transparence méthodologique -->
+  <div class="panel">
+    <h2>Protocole d'évaluation — ce que valent ces scores</h2>
+    <div class="body">
+      <div class="kv" id="evalGrid">…</div>
+      <div class="note" id="fusionRule"></div>
+    </div>
+  </div>
+
+  <!-- Rapport -->
+  <div class="panel" id="reportPanel" style="display:none">
+    <h2>Rapport d'incident <span class="spacer"></span><span id="reportMeta" class="pill none"></span></h2>
+    <div class="body"><pre class="report" id="reportContent"></pre></div>
+  </div>
+
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function jget(url){
+  const r = await fetch(url);
+  if(!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.error || r.status); }
+  return r.json();
+}
+
+/* ---------- état des briques ---------- */
+async function loadStatus(){
+  try{
+    const s = await jget('/api/status');
+    const c = s.components;
+    const items = [
+      ['Isolation Forest', c.isolation_forest],
+      ['XGBoost (UNSW)',   c.xgboost],
+      ['RAG ATT&CK',       c.rag_attack],
+      ['Ollama',           c.ollama],
+    ];
+    $('statusGrid').innerHTML = items.map(([name, o]) => `
+      <div>
+        <div class="k">${esc(name)}</div>
+        <div class="v" style="color:${o.ready ? 'var(--ok)' : 'var(--bad)'}">
+          ${o.ready ? '● prêt' : '● absent'}
+        </div>
+        <div class="k" style="margin-top:6px">${esc(o.note)}</div>
+      </div>`).join('');
+
+    const ready = items.filter(([,o]) => o.ready).length;
+    $('badges').innerHTML = `<span class="dot ${ready===4?'ok':'bad'}"></span> ${ready}/4 briques prêtes`;
+
+    if(s.report_exists)
+      $('reportMeta').textContent = (s.report_size/1024).toFixed(1) + ' Ko';
+  }catch(e){
+    $('badges').innerHTML = `<span class="dot bad"></span> ${esc(e.message)}`;
+  }
+}
+
+/* ---------- détection hybride ---------- */
+async function loadDetection(){
+  $('alertsWrap').innerHTML = '<div class="empty"><span class="spin"></span> détection en cours…</div>';
+  try{
+    const d = await jget('/api/detection');
+    render(d);
+  }catch(e){
+    $('alertsWrap').innerHTML = `<div class="empty"><b>Échec</b><br>${esc(e.message)}</div>`;
+  }
+}
+
+function render(d){
+  const s = d.summary || {};
+
+  /* cartes */
+  $('cards').innerHTML = [
+    ['info',   s.hourly_profiles, 'profils (IP, heure)'],
+    ['info',   s.flagged,         'signalés par l\'IF'],
+    ['haute',  s.priority_haute,  'priorité haute (accord)'],
+    ['normale',s.priority_normale,'priorité normale (IF seul)'],
+    ['',       s.xgb_solo_not_alerted, 'XGBoost seul — non alertés'],
+    ['',       s.with_technique,  'avec technique ATT&CK'],
+  ].map(([cls,v,k]) => `<div class="card ${cls}"><div class="v">${v ?? '—'}</div><div class="k">${k}</div></div>`).join('');
+
+  /* mode d'évaluation */
+  const ev = d.evaluation || {};
+  $('evalMode').textContent = ev.mode === 'holdout'
+    ? `holdout · split ${ev.split_date}` : (ev.mode || 'inconnu');
+  $('evalMode').className = 'pill ' + (ev.mode === 'holdout' ? 'tech' : 'none');
+
+  $('evalGrid').innerHTML = [
+    ['Mode',            ev.mode],
+    ['Frontière',       ev.split_date || '—'],
+    ['Période entraînement', ev.train_period],
+    ['Période évaluation',   ev.test_period],
+    ['Lignes entraînement',  ev.train_rows?.toLocaleString('fr-FR')],
+    ['Lignes évaluation',    ev.test_rows?.toLocaleString('fr-FR')],
+  ].map(([k,v]) => `<div><div class="k">${esc(k)}</div><div class="v">${esc(v ?? '—')}</div></div>`).join('');
+
+  $('fusionRule').textContent = d.fusion_rule || '';
+
+  /* alertes */
+  const alerts = d.alerts || [];
+  if(!alerts.length){
+    $('alertsWrap').innerHTML = '<div class="empty"><b>Aucune anomalie détectée.</b></div>';
+    return;
+  }
+  const rows = alerts.map((a,i) => {
+    const x = a.xgboost || {};
+    const t = a.attack_technique;
+    const feats = Object.entries(a.features || {})
+      .sort((p,q) => Math.abs(q[1]) - Math.abs(p[1])).slice(0,7)
+      .map(([k,v]) => `<span class="feat">${esc(k)} <b>${esc(v)}</b></span>`).join('');
+
+    return `<tr>
+      <td class="rank">${i+1}</td>
+      <td><span class="ip">${esc(a.ip)}</span></td>
+      <td style="white-space:nowrap">${esc((a.hour||'').replace(' 00:00:00','').slice(0,16))}</td>
+      <td class="num">
+        <div style="font-weight:700">${a.anomaly_score?.toFixed(1)}</div>
+        <div class="bar"><i style="width:${a.anomaly_score}%"></i></div>
+      </td>
+      <td><span class="pill ${esc(a.priority)}">${esc(a.priority)}</span></td>
+      <td><span class="pill ${t?'tech':'none'}">${t ? esc(t.id)+' · '+esc(t.name) : '—'}</span></td>
+      <td><span class="pill family">${esc(x.family||'-')} ${x.p_attack_max!=null?'('+x.p_attack_max.toFixed(2)+')':''}</span></td>
+      <td><div class="feats">${feats || '<span class="feat">—</span>'}</div></td>
+    </tr>`;
+  }).join('');
+
+  $('alertsWrap').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>#</th><th>IP</th><th>Heure</th><th style="text-align:right">Score IF</th>
+        <th>Priorité</th><th>Technique ATT&CK</th><th>Famille XGBoost</th>
+        <th>Features en évidence</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="padding:12px 18px" class="note">${esc(d.interpretation||'')}</div>`;
+}
+
+/* ---------- rapport ---------- */
+async function loadReport(){
+  const p = $('reportPanel');
+  p.style.display = 'block';
+  p.scrollIntoView({behavior:'smooth'});
+  try{
+    const r = await jget('/api/report');
+    $('reportContent').textContent = r.content;
+    $('reportMeta').textContent = (r.size/1024).toFixed(1) + ' Ko';
+  }catch(e){
+    $('reportContent').textContent = 'Aucun rapport.\n' + e.message;
+    $('reportMeta').textContent = 'absent';
+  }
+}
+
+/* ---------- actions ---------- */
+async function refresh(){
+  const b = $('btnRefresh'); b.disabled = true;
+  b.innerHTML = '<span class="spin"></span> recalcul…';
+  try{ await fetch('/api/refresh',{method:'POST'}); await loadDetection(); }
+  finally{ b.disabled = false; b.innerHTML = '⟳ Recalculer'; }
+}
+
+/* ---------- interrogation de l'agent ---------- */
+let jobId = null;
+
+async function ask(){
+  const q = $('question').value.trim();
+  if(!q) return;
+
+  const b = $('btnAsk');
+  b.disabled = true; b.innerHTML = '<span class="spin"></span> envoi…';
+
+  try{
+    const r = await fetch('/api/ask', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({question:q, mode:'soc'})
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+
+    jobId = d.id;
+    $('jobProgress').style.display = 'block';
+    $('jobLog').innerHTML = '';
+    $('jobAnswer').innerHTML = '';
+    $('jobMeta').textContent = 'démarrage…';
+    poll();
+  }catch(e){
+    $('jobProgress').style.display = 'block';
+    $('jobState').textContent = 'erreur';
+    $('jobState').className = 'pill haute';
+    $('jobMeta').textContent = e.message;
+  }finally{
+    b.disabled = false; b.innerHTML = 'Envoyer';
+  }
+}
+
+async function poll(){
+  if(!jobId) return;
+  let j;
+  try{
+    j = await fetch('/api/job/' + jobId).then(r => r.json());
+    if(j.error && !j.status) throw new Error(j.error);
+  }catch(e){
+    setTimeout(poll, 4000);          // raté une fois : on retente
+    return;
+  }
+  renderJob(j);
+  if(j.status === 'running') setTimeout(poll, 2000);
+}
+
+function renderJob(j){
+  const st = $('jobState');
+  const m = Math.floor(j.elapsed / 60), s = Math.floor(j.elapsed % 60);
+  $('jobMeta').textContent =
+    `${j.turns} appel(s) d'outil · ${m} min ${String(s).padStart(2,'0')} s`;
+
+  if(j.status === 'running'){ st.textContent = 'en cours';  st.className = 'pill normale'; }
+  else if(j.status === 'done'){ st.textContent = 'terminé'; st.className = 'pill tech'; }
+  else if(j.status === 'error'){ st.textContent = 'erreur'; st.className = 'pill haute'; }
+
+  $('jobLog').innerHTML = j.log.map(e => {
+    if(e.kind === 'tool')
+      return `<div class="row"><span class="tool">🔧 ${esc(e.name)}</span> <span class="args">${esc(e.args)}</span></div>`;
+    if(e.kind === 'result')
+      return `<div class="row"><span class="result">↳ ${esc(e.text)}</span></div>`;
+    return '';
+  }).join('');
+  const log = $('jobLog');
+  log.scrollTop = log.scrollHeight;
+
+  if(j.status === 'done'){
+    if(j.answer){
+      $('jobAnswer').innerHTML =
+        '<div class="note" style="margin-bottom:8px">Réponse finale</div>' +
+        `<div class="answer">${esc(j.answer)}</div>`;
+      loadStatus();
+      loadReport();     // le rapport vient d'être écrit (agent ou garde-fou)
+    }
+  }else if(j.status === 'error'){
+    $('jobAnswer').innerHTML = `<div class="answer err">${esc(j.error || 'erreur inconnue')}</div>`;
+  }
+}
+
+loadStatus();
+loadDetection();
+</script>
+</body>
+</html>
