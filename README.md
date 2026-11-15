@@ -128,7 +128,7 @@ The process includes:
 5. Retrieving relevant techniques through natural-language queries.
 6. Using the retrieved information to support the agent's explanations and incident reports.
 
-This approach helps ground attack identification in documented security knowledge and reduces the risk of hallucinated MITRE references.
+
 
 ## Technology Stack
 
@@ -149,39 +149,11 @@ This approach helps ground attack identification in documented security knowledg
 
 ### Prerequisites
 
-Make sure you have the following installed:
-
 - Python 3.10 or later.
 - Ollama.
-- Git (recommended).
 
-### 1. Clone the Repository
 
-```bash
-git clone <YOUR_REPOSITORY_URL>
-cd projet_agent
-```
-
-### 2. Create a Virtual Environment
-
-On Windows:
-
-```powershell
-py -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-### 3. Configure Environment Variables
-
-Create your local environment configuration file:
-
-```powershell
-copy .env.example .env
-```
-
-Update the `.env` file according to your local configuration.
-
-### 4. Download the Local Models
+###  Download the Local Models
 
 Install the required Ollama models:
 
@@ -190,9 +162,9 @@ ollama pull qwen3:8b
 ollama pull nomic-embed-text
 ```
 
-These models are downloaded once and can then be used locally.
 
-### 5. Build the MITRE ATT&CK Knowledge Base
+
+###  Build the MITRE ATT&CK Knowledge Base
 
 Run the following commands to extract the ATT&CK techniques and build the vector database:
 
@@ -202,9 +174,8 @@ Run the following commands to extract the ATT&CK techniques and build the vector
 .\.venv\Scripts\python.exe -m agent.rag
 ```
 
-This process prepares the 63 selected techniques and creates the ChromaDB index.
 
-### 6. Train the XGBoost Model
+###  Train the XGBoost Model
 
 Download the `UNSW_NB15_testing-set.csv` dataset from the official UNSW source.
 
@@ -220,21 +191,10 @@ Then run:
 .\.venv\Scripts\python.exe train_xgboost
 ```
 
-The trained model artifacts will be saved in the `models/` directory.
-
 ## Usage
 
-### 1. Generate Synthetic Security Logs
 
-Generate the simulated security events:
-
-```powershell
-.\.venv\Scripts\python.exe generate_logs.py
-```
-
-This step only needs to be performed once unless you want to regenerate the logs.
-
-### 2. Run a Complete SOC Investigation
+###  Run a Complete SOC Investigation
 
 Start the SOC agent:
 
@@ -248,7 +208,7 @@ The agent will investigate the available logs and generate:
 workspace/incident_report.md
 ```
 
-### 3. Run the General Assistant
+###  Run the General Assistant
 
 Start the interactive assistant:
 
@@ -262,7 +222,7 @@ You can also execute a one-time request:
 .\.venv\Scripts\python.exe main.py "Find the three latest AI news articles and summarize them"
 ```
 
-### 4. Launch the Web Dashboard
+###  Launch the Web Dashboard
 
 Start the web interface:
 
@@ -270,32 +230,10 @@ Start the web interface:
 .\.venv\Scripts\python.exe app.py
 ```
 
-Open the local URL displayed in your terminal to access the dashboard.
 
-## Project Structure
 
-```text
-projet_agent/
-│
-├── agent/
-│   └── rag/                  # RAG pipeline and ATT&CK retrieval
-│
-├── models/                   # Trained ML model artifacts
-│
-├── workspace/                # Input logs and generated reports
-│
-├── generate_logs.py           # Synthetic log generation
-├── ingest_attack.py           # MITRE ATT&CK data ingestion
-├── train_xgboost.py           # XGBoost model training
-├── main.py                    # Main agent entry point
-├── app.py                     # Web dashboard
-│
-├── requirements.txt           # Python dependencies
-├── .env.example               # Environment configuration template
-└── README.md
-```
 
-*Note: The structure above presents the main project components. Some internal files and modules may not be shown.*
+
 
 ## Project Goals
 
@@ -310,24 +248,4 @@ Its main objectives are:
 - Generating structured and actionable incident reports.
 - Running the AI components locally using open-source models.
 
-## Future Improvements
 
-Potential extensions include:
-
-- Integrating real-time log ingestion.
-- Supporting additional log formats and security data sources.
-- Expanding the MITRE ATT&CK technique coverage.
-- Adding incident severity scoring and prioritization.
-- Improving detection performance through additional ML experiments.
-- Integrating the agent with SIEM platforms.
-- Adding interactive investigation history and visual analytics.
-
-## Disclaimer
-
-This project is developed for educational and research purposes.
-
-The security logs are synthetic, and the detection models are intended for experimentation. The system should not be considered a replacement for professional SOC analysts or production-grade security monitoring solutions.
-
----
-
-**Built with Python, Machine Learning, RAG, Ollama, and MITRE ATT&CK.**
